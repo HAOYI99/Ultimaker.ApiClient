@@ -28,6 +28,8 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
       - name: Pack
-        run: dotnet pack ${{env.PROJECT_PATH}} --configuration Release --no-build -o ${{env.PACKAGE_OUTPUT_DIR}}
+        working-directory: ${{ github.workspace }}
+        run: dotnet pack $env:PROJECT_PATH --configuration Release --no-build -o $env:PACKAGE_OUTPUT_DIR
+        shell: pwsh
       - name: Push to NuGet
         run: dotnet nuget push "${{env.PACKAGE_OUTPUT_DIR}}/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
