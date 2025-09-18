@@ -14,11 +14,12 @@
         <PackageLicenseUrl>https://github.com/HAOYI99/Ultimaker.ApiClient/blob/main/LICENSE.md</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/HAOYI99/Ultimaker.ApiClient</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
     </PropertyGroup>
-
     <ItemGroup>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
     </ItemGroup>
-
+    <ItemGroup>
+      <Content Include=".github\workflows\nuget.yml" />
+    </ItemGroup>
 </Project>
