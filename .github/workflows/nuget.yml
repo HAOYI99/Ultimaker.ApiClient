@@ -23,20 +23,6 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '8.0.x'
-      - name: Semantic Release
-        id: semantic
-        uses: cycjimmy/semantic-release-action@v5
-        with:
-          branch: main
-          dry_run: true
-          extra_plugins: |
-            @semantic-release/commit-analyzer
-            @semantic-release/release-notes-generator
-            @semantic-release/changelog
-            @semantic-release/git
-            @semantic-release/github
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Restore dependencies
         run: dotnet restore
       - name: Build
