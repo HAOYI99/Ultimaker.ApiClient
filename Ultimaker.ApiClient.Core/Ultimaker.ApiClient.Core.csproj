@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <Version>1.0.0</Version>
+        <PackageId>Ultimaker.ApiClient</PackageId>
+        <PackageTags>ultimaker</PackageTags>
+        <Title>Ultimaker API Client</Title>
+        <Authors>HAOYI99</Authors>
+        <Description>Not offical library for Ultimaker APIs</Description>
+        <PackageProjectUrl>https://github.com/HAOYI99/Ultimaker.ApiClient</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/HAOYI99/Ultimaker.ApiClient/blob/main/LICENSE.md</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/HAOYI99/Ultimaker.ApiClient</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
+    </ItemGroup>
+
+</Project>
