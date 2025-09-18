@@ -1,0 +1,31 @@
+﻿name: Deploy to NuGet
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_PATH: Ultimaker.ApiClient.Core/Ultimaker.ApiClient.Core.csproj
+  PACKAGE_OUTPUT_DIR: ${{ github.workspace }}/output
+
+jobs:
+  release:
+    name: Release to NuGet
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+      - name: Clean
+        run: dotnet clean
+      - name: Pack
+        run: dotnet pack --configuration Release
+      - name: Push to NuGet
+        run: dotnet nuget push "${{github.workspace}}\Ultimaker.ApiClient.Core\bin\Release\*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
