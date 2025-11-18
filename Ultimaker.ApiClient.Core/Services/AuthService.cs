@@ -6,7 +6,7 @@ using Ultimaker.ApiClient.Core.Helper;
 
 namespace Ultimaker.ApiClient.Core.Services;
 
-public class AuthService: ServiceBase
+public class AuthService : ServiceBase
 {
     public AuthService(HttpClient httpClient) : base(httpClient) { }
     public AuthService(HttpClient httpClient, NetworkCredential credential) : base(httpClient, credential) { }

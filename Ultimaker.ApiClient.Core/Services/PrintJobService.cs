@@ -1,30 +1,39 @@
 ﻿using System.Net;
+using Newtonsoft.Json;
 using Ultimaker.ApiClient.Core.Constants;
 using Ultimaker.ApiClient.Core.Dto;
+using Ultimaker.ApiClient.Core.Dto.Request;
 using Ultimaker.ApiClient.Core.Dto.Response;
+using Ultimaker.ApiClient.Core.Dto.Response.PrintJob;
 using Ultimaker.ApiClient.Core.Enums;
+using Ultimaker.ApiClient.Core.Helper;
 using Ultimaker.ApiClient.Core.Utils;
 
 namespace Ultimaker.ApiClient.Core.Services;
 
 public class PrintJobService : ServiceBase
 {
-    protected readonly HttpClient _longTimeoutHttpClient;
+    private readonly HttpClient _longTimeoutHttpClient;
 
     public PrintJobService(HttpClient httpClient) : base(httpClient)
     {
         _longTimeoutHttpClient = httpClient;
-        _longTimeoutHttpClient.Timeout = TimeSpan.FromMinutes(1);
+        if (httpClient.Timeout < TimeSpan.FromMinutes(1))
+            _longTimeoutHttpClient.Timeout = TimeSpan.FromMinutes(1);
     }
 
     public PrintJobService(HttpClient httpClient, NetworkCredential credential) : base(httpClient, credential)
     {
         _longTimeoutHttpClient = httpClient;
-        _longTimeoutHttpClient.Timeout = TimeSpan.FromMinutes(1);
+        if (httpClient.Timeout < TimeSpan.FromMinutes(1))
+            _longTimeoutHttpClient.Timeout = TimeSpan.FromMinutes(1);
     }
 
     public Task<PrintJobDto?> Get(CancellationToken ct = default)
         => GetAsync<PrintJobDto>(UltimakerPaths.PrintJob.Base, ct);
+
+    public Task<PrintJobAcceptedDto?> Start(FileItem printFile, CancellationToken ct = default)
+        => StartPrintJobAsync(UltimakerPaths.PrintJob.Base, printFile, ct);
 
     public Task<string?> GetName(CancellationToken ct = default)
         => GetAsync<string>(UltimakerPaths.PrintJob.JobName, ct);
@@ -46,6 +55,14 @@ public class PrintJobService : ServiceBase
 
     public Task<JobState?> GetJobState(CancellationToken ct = default)
         => GetAsync<JobState?>(UltimakerPaths.PrintJob.State, ct);
+
+    /// <summary>
+    /// set a new job state
+    /// but note that not all state transitions are valid, it will always return true
+    /// make sure to check the job state before and after calling this method
+    /// </summary>
+    public Task<bool> SetJobState(UpdateJobStateOpt newState, CancellationToken ct = default)
+        => PutJobStateAsync(UltimakerPaths.PrintJob.State, newState, ct);
 
     public Task<JobResult?> GetJobResult(CancellationToken ct = default)
         => GetAsync<JobResult?>(UltimakerPaths.PrintJob.Result, ct);
@@ -79,6 +96,27 @@ public class PrintJobService : ServiceBase
     /// </summary>
     public Task<FileItem?> GetContainer(CancellationToken ct = default)
         => GetFileAsync(UltimakerPaths.PrintJob.Container, ct);
+
+    private async Task<bool> PutJobStateAsync(string path, UpdateJobStateOpt newState, CancellationToken ct = default)
+    {
+        EnsureHasCredential();
+        var requestBody = new UpdateJobStateDto { NewState = newState };
+        var test = JsonConvert.SerializeObject(requestBody, _jsonSetting);
+        var requestContent = new StringJsonContent(test);
+        var response = await _httpClient.PutAsync(path, requestContent, ct);
+        return response.IsSuccessStatusCode;
+    }
+
+    private async Task<PrintJobAcceptedDto?> StartPrintJobAsync(string path, FileItem printFile,
+        CancellationToken ct = default)
+    {
+        EnsureHasCredential();
+        var formData = new MultipartFormBuilder()
+            .AddFile("file", printFile)
+            .AddString("jobname", printFile.FileNameOnly)
+            .Build();
+        return await PostAsync<PrintJobAcceptedDto>(path, formData, ct);
+    }
 
     private async Task<string?> GetGCodeAsync(string path, CancellationToken ct = default)
     {

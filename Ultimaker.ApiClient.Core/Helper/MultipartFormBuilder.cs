@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Headers;
+using Ultimaker.ApiClient.Core.Dto;
 
 namespace Ultimaker.ApiClient.Core.Helper;
 
@@ -26,6 +27,12 @@ internal class MultipartFormBuilder
             FileName = $"\"{filename}\""
         };
         _form.Add(fileContent, name, filename);
+        return this;
+    }
+
+    internal MultipartFormBuilder AddFile(string name, FileItem file)
+    {
+        AddFile(name, file.Content, file.FileName);
         return this;
     }
     
