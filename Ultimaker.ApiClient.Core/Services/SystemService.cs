@@ -2,6 +2,7 @@
 using Ultimaker.ApiClient.Core.Constants;
 using Ultimaker.ApiClient.Core.Dto.Response;
 using Ultimaker.ApiClient.Core.Dto.Response.System;
+using Ultimaker.ApiClient.Core.Enums;
 
 namespace Ultimaker.ApiClient.Core.Services;
 
@@ -61,17 +62,17 @@ public class SystemService : ServiceBase
     public Task<string?> GetType(CancellationToken ct = default)
         => GetAsync<string>(UltimakerPaths.System.Type, ct);
 
-    public Task<string?> GetVariant(CancellationToken ct = default)
-        => GetAsync<string>(UltimakerPaths.System.Variant, ct);
+    public Task<PrinterVariant> GetVariant(CancellationToken ct = default)
+        => GetAsync<PrinterVariant>(UltimakerPaths.System.Variant, ct);
 
     public Task<SystemHardware?> GetHardware(CancellationToken ct = default)
         => GetAsync<SystemHardware>(UltimakerPaths.System.Hardware, ct);
 
-    public Task<string?> GetHardwareTypeId(CancellationToken ct = default)
-        => GetAsync<string>(UltimakerPaths.System.HardwareTypeId, ct);
+    public Task<int> GetHardwareTypeId(CancellationToken ct = default)
+        => GetAsync<int>(UltimakerPaths.System.HardwareTypeId, ct);
 
-    public Task<string?> GetHardwareRevision(CancellationToken ct = default)
-        => GetAsync<string>(UltimakerPaths.System.HardwareRevision, ct);
+    public Task<int> GetHardwareRevision(CancellationToken ct = default)
+        => GetAsync<int>(UltimakerPaths.System.HardwareRevision, ct);
 
     public Task<Guid> GetId(CancellationToken ct = default)
         => GetAsync<Guid>(UltimakerPaths.System.Guid, ct);

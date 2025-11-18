@@ -1,6 +1,6 @@
 ﻿using System.Net;
-using System.Security.Authentication;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Ultimaker.ApiClient.Core.Exceptions;
 using Ultimaker.ApiClient.Core.Utils;
 
@@ -10,7 +10,12 @@ public abstract class ServiceBase
 {
     protected readonly HttpClient _httpClient;
     protected readonly NetworkCredential _credential;
-    protected readonly JsonSerializerSettings _jsonSetting = new() { DateTimeZoneHandling = DateTimeZoneHandling.Utc };
+
+    protected readonly JsonSerializerSettings _jsonSetting = new()
+    {
+        DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+        Converters = { new StringEnumConverter() }
+    };
 
     protected ServiceBase(HttpClient httpClient)
     {
