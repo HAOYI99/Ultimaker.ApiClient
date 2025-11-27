@@ -2,6 +2,8 @@
 using Ultimaker.ApiClient.Core.Constants;
 using Ultimaker.ApiClient.Core.Dto.Response;
 using Ultimaker.ApiClient.Core.Dto.Response.System;
+using Ultimaker.ApiClient.Core.Enums;
+using Ultimaker.ApiClient.Core.Helper;
 
 namespace Ultimaker.ApiClient.Core.Services;
 
@@ -46,6 +48,9 @@ public class SystemService : ServiceBase
     public Task<string?> GetName(CancellationToken ct = default)
         => GetAsync<string>(UltimakerPaths.System.Name, ct);
 
+    public Task<HttpStatusCode> SetName(string newName, CancellationToken ct = default)
+        => UpdateNameAsync(UltimakerPaths.System.Name, newName, ct);
+
     public Task<string?> GetCountry(CancellationToken ct = default)
         => GetAsync<string>(UltimakerPaths.System.Country, ct);
 
@@ -61,18 +66,26 @@ public class SystemService : ServiceBase
     public Task<string?> GetType(CancellationToken ct = default)
         => GetAsync<string>(UltimakerPaths.System.Type, ct);
 
-    public Task<string?> GetVariant(CancellationToken ct = default)
-        => GetAsync<string>(UltimakerPaths.System.Variant, ct);
+    public Task<PrinterVariant> GetVariant(CancellationToken ct = default)
+        => GetAsync<PrinterVariant>(UltimakerPaths.System.Variant, ct);
 
     public Task<SystemHardware?> GetHardware(CancellationToken ct = default)
         => GetAsync<SystemHardware>(UltimakerPaths.System.Hardware, ct);
 
-    public Task<string?> GetHardwareTypeId(CancellationToken ct = default)
-        => GetAsync<string>(UltimakerPaths.System.HardwareTypeId, ct);
+    public Task<int> GetHardwareTypeId(CancellationToken ct = default)
+        => GetAsync<int>(UltimakerPaths.System.HardwareTypeId, ct);
 
-    public Task<string?> GetHardwareRevision(CancellationToken ct = default)
-        => GetAsync<string>(UltimakerPaths.System.HardwareRevision, ct);
+    public Task<int> GetHardwareRevision(CancellationToken ct = default)
+        => GetAsync<int>(UltimakerPaths.System.HardwareRevision, ct);
 
     public Task<Guid> GetId(CancellationToken ct = default)
         => GetAsync<Guid>(UltimakerPaths.System.Guid, ct);
+
+    private async Task<HttpStatusCode> UpdateNameAsync(string path, string newName, CancellationToken ct = default)
+    {
+        EnsureHasCredential();
+        var requestContent = new StringJsonContent(newName);
+        var response = await _httpClient.PutAsync(path, requestContent, ct);
+        return response.StatusCode;
+    }
 }

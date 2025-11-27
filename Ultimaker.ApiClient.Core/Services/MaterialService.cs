@@ -28,7 +28,7 @@ public class MaterialService : ServiceBase
     {
         var formData = new MultipartFormBuilder()
             .AddString("filename", file.FileName)
-            .AddFile("file", file.Content, file.FileName)
+            .AddFile("file", file)
             .Build();
         return await PostAsync<ResultDto>(path, formData, ct);
     }

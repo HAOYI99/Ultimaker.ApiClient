@@ -3,10 +3,11 @@ using Ultimaker.ApiClient.Core.Services;
 
 namespace Ultimaker.ApiClient.Core;
 
-public class UltimakerClient
+public class UltimakerClient : IDisposable
 {
+    private HttpClient _httpClient;
     private readonly TimeSpan DEFAULT_TIMEOUT = TimeSpan.FromSeconds(10);
-
+    
     public AuthService Auth { get; internal set; }
     public MaterialService Material { get; internal set; }
     public PrinterService Printer { get; internal set; }
@@ -15,37 +16,78 @@ public class UltimakerClient
     public HistoryService History { get; internal set; }
     public AirManagerService AirManager { get; internal set; }
 
+    public UltimakerClient(HttpClient httpClient)
+    {
+        ArgumentNullException.ThrowIfNull(httpClient.BaseAddress);
+        _httpClient = httpClient;
+        Auth = new AuthService(_httpClient);
+        Material = new MaterialService(_httpClient);
+        Printer = new PrinterService(_httpClient);
+        PrintJob = new PrintJobService(_httpClient);
+        System = new SystemService(_httpClient);
+        History = new HistoryService(_httpClient);
+        AirManager = new AirManagerService(_httpClient);
+    }
+
     public UltimakerClient(string url)
     {
-        var httpClient = new HttpClient
+        _httpClient = new HttpClient
         {
             BaseAddress = new Uri(url),
             Timeout = DEFAULT_TIMEOUT
         };
-        Auth = new AuthService(httpClient);
-        Material = new MaterialService(httpClient);
-        Printer = new PrinterService(httpClient);
-        PrintJob = new PrintJobService(httpClient);
-        System = new SystemService(httpClient);
-        History = new HistoryService(httpClient);
-        AirManager = new AirManagerService(httpClient);
+        Auth = new AuthService(_httpClient);
+        Material = new MaterialService(_httpClient);
+        Printer = new PrinterService(_httpClient);
+        PrintJob = new PrintJobService(_httpClient);
+        System = new SystemService(_httpClient);
+        History = new HistoryService(_httpClient);
+        AirManager = new AirManagerService(_httpClient);
     }
 
     public UltimakerClient(string url, string username, string password)
     {
         var credential = new NetworkCredential(username, password);
         var handler = new HttpClientHandler { Credentials = credential };
-        var httpClient = new HttpClient(handler)
+        _httpClient = new HttpClient(handler)
         {
             BaseAddress = new Uri(url),
             Timeout = DEFAULT_TIMEOUT
         };
-        Auth = new AuthService(httpClient, credential);
-        Material = new MaterialService(httpClient, credential);
-        Printer = new PrinterService(httpClient, credential);
-        PrintJob = new PrintJobService(httpClient, credential);
-        System = new SystemService(httpClient, credential);
-        History = new HistoryService(httpClient, credential);
-        AirManager = new AirManagerService(httpClient, credential);
+        Auth = new AuthService(_httpClient, credential);
+        Material = new MaterialService(_httpClient, credential);
+        Printer = new PrinterService(_httpClient, credential);
+        PrintJob = new PrintJobService(_httpClient, credential);
+        System = new SystemService(_httpClient, credential);
+        History = new HistoryService(_httpClient, credential);
+        AirManager = new AirManagerService(_httpClient, credential);
+    }
+    
+    public void UpdateCred(string username, string password)
+    {
+        var baseUrl = _httpClient.BaseAddress!.ToString();
+        var timeout = _httpClient.Timeout;
+        _httpClient.Dispose();
+        
+        var newCredential = new NetworkCredential(username, password);
+        var handler = new HttpClientHandler { Credentials = newCredential };
+        _httpClient = new HttpClient(handler)
+        {
+            BaseAddress = new Uri(baseUrl),
+            Timeout = timeout
+        };
+        Auth = new AuthService(_httpClient, newCredential);
+        Material = new MaterialService(_httpClient, newCredential);
+        Printer = new PrinterService(_httpClient, newCredential);
+        PrintJob = new PrintJobService(_httpClient, newCredential);
+        System = new SystemService(_httpClient, newCredential);
+        History = new HistoryService(_httpClient, newCredential);
+        AirManager = new AirManagerService(_httpClient, newCredential);
+    }
+
+    public void Dispose()
+    {
+        _httpClient.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

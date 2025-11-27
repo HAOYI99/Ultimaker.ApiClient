@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Ultimaker.ApiClient.Core.Dto.Response.System;
+using Ultimaker.ApiClient.Core.Enums;
 
 namespace Ultimaker.ApiClient.Core.Dto.Response;
 
@@ -13,7 +14,7 @@ public class SystemDto
     [JsonProperty("language")] public string Language { get; set; }
     [JsonProperty("uptime")] public int Uptime { get; set; }
     [JsonProperty("type")] public string Type { get; set; }
-    [JsonProperty("variant")] public string Variant { get; set; }
+    [JsonProperty("variant")] public PrinterVariant Variant { get; set; }
     [JsonProperty("is_country_locked")] public bool IsCountryLocked { get; set; }
     [JsonProperty("log")] public string[] Logs { get; set; }
     [JsonProperty("guid")] public Guid Id { get; set; }
