@@ -5,9 +5,9 @@ namespace Ultimaker.ApiClient.Core;
 
 public class UltimakerClient : IDisposable
 {
-    private readonly HttpClient _httpClient;
+    private HttpClient _httpClient;
     private readonly TimeSpan DEFAULT_TIMEOUT = TimeSpan.FromSeconds(10);
-
+    
     public AuthService Auth { get; internal set; }
     public MaterialService Material { get; internal set; }
     public PrinterService Printer { get; internal set; }
@@ -18,6 +18,7 @@ public class UltimakerClient : IDisposable
 
     public UltimakerClient(HttpClient httpClient)
     {
+        ArgumentNullException.ThrowIfNull(httpClient.BaseAddress);
         _httpClient = httpClient;
         Auth = new AuthService(_httpClient);
         Material = new MaterialService(_httpClient);
@@ -27,7 +28,7 @@ public class UltimakerClient : IDisposable
         History = new HistoryService(_httpClient);
         AirManager = new AirManagerService(_httpClient);
     }
-    
+
     public UltimakerClient(string url)
     {
         _httpClient = new HttpClient
@@ -60,6 +61,28 @@ public class UltimakerClient : IDisposable
         System = new SystemService(_httpClient, credential);
         History = new HistoryService(_httpClient, credential);
         AirManager = new AirManagerService(_httpClient, credential);
+    }
+    
+    public void UpdateCred(string username, string password)
+    {
+        var baseUrl = _httpClient.BaseAddress!.ToString();
+        var timeout = _httpClient.Timeout;
+        _httpClient.Dispose();
+        
+        var newCredential = new NetworkCredential(username, password);
+        var handler = new HttpClientHandler { Credentials = newCredential };
+        _httpClient = new HttpClient(handler)
+        {
+            BaseAddress = new Uri(baseUrl),
+            Timeout = timeout
+        };
+        Auth = new AuthService(_httpClient, newCredential);
+        Material = new MaterialService(_httpClient, newCredential);
+        Printer = new PrinterService(_httpClient, newCredential);
+        PrintJob = new PrintJobService(_httpClient, newCredential);
+        System = new SystemService(_httpClient, newCredential);
+        History = new HistoryService(_httpClient, newCredential);
+        AirManager = new AirManagerService(_httpClient, newCredential);
     }
 
     public void Dispose()
