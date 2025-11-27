@@ -101,8 +101,7 @@ public class PrintJobService : ServiceBase
     {
         EnsureHasCredential();
         var requestBody = new UpdateJobStateDto { NewState = newState };
-        var test = JsonConvert.SerializeObject(requestBody, _jsonSetting);
-        var requestContent = new StringJsonContent(test);
+        var requestContent = new StringJsonContent(requestBody, _jsonSetting);
         var response = await _httpClient.PutAsync(path, requestContent, ct);
         return response.IsSuccessStatusCode;
     }

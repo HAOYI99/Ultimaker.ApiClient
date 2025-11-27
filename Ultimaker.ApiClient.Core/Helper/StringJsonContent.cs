@@ -1,5 +1,6 @@
 ﻿using System.Net.Mime;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace Ultimaker.ApiClient.Core.Helper;
 
@@ -14,6 +15,9 @@ internal class StringJsonContent : StringContent
     /// Serialize object using Newtonsoft.Json.
     /// </summary>
     /// <param name="content">Object or string to serialize to JSON</param>
-    public StringJsonContent(string content)
-        : base(content, DefaultStringEncoding, DEFAULT_MEDIA_TYPE) { }
+    public StringJsonContent(object content)
+        : base(JsonConvert.SerializeObject(content), DefaultStringEncoding, DEFAULT_MEDIA_TYPE) { }
+
+    public StringJsonContent(object content, JsonSerializerSettings settings)
+        : base(JsonConvert.SerializeObject(content, settings), DefaultStringEncoding, DEFAULT_MEDIA_TYPE) { }
 }

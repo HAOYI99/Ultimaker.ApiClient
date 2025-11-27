@@ -3,6 +3,7 @@ using Ultimaker.ApiClient.Core.Constants;
 using Ultimaker.ApiClient.Core.Dto.Response;
 using Ultimaker.ApiClient.Core.Dto.Response.System;
 using Ultimaker.ApiClient.Core.Enums;
+using Ultimaker.ApiClient.Core.Helper;
 
 namespace Ultimaker.ApiClient.Core.Services;
 
@@ -47,6 +48,9 @@ public class SystemService : ServiceBase
     public Task<string?> GetName(CancellationToken ct = default)
         => GetAsync<string>(UltimakerPaths.System.Name, ct);
 
+    public Task<HttpStatusCode> SetName(string newName, CancellationToken ct = default)
+        => UpdateNameAsync(UltimakerPaths.System.Name, newName, ct);
+
     public Task<string?> GetCountry(CancellationToken ct = default)
         => GetAsync<string>(UltimakerPaths.System.Country, ct);
 
@@ -76,4 +80,12 @@ public class SystemService : ServiceBase
 
     public Task<Guid> GetId(CancellationToken ct = default)
         => GetAsync<Guid>(UltimakerPaths.System.Guid, ct);
+
+    private async Task<HttpStatusCode> UpdateNameAsync(string path, string newName, CancellationToken ct = default)
+    {
+        EnsureHasCredential();
+        var requestContent = new StringJsonContent(newName);
+        var response = await _httpClient.PutAsync(path, requestContent, ct);
+        return response.StatusCode;
+    }
 }
