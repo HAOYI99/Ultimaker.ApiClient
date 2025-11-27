@@ -181,9 +181,9 @@ public class HistoryServiceTest
                 MediaTypeNames.Application.Json,
                 ListHistoryPrintJobs);
         var result = await _service.GetPrintJobs();
-        Assert.NotNull(result);
-        Assert.NotEmpty(result);
-        Assert.Equal(2, result.Length);
+        Assert.NotNull(result.Data);
+        Assert.NotEmpty(result.Data);
+        Assert.Equal(2, result.Data.Length);
     }
 
     [Fact]
@@ -196,16 +196,16 @@ public class HistoryServiceTest
                 MediaTypeNames.Application.Json,
                 CurrentPrintJob);
         var result = await _service.GetPrintJobById(jobId);
-        Assert.NotNull(result);
-        Assert.Equal(jobId, result.JobId);
-        Assert.Equal("test_jobname", result.JobName);
-        Assert.Equal(DateTimeKind.Utc, result.StartedDt.Kind);
-        Assert.Null(result.CleanedDt);
-        Assert.Null(result.FinishedDt);
-        Assert.Equal("c3211c12-c1b5-4ab0-9e1a-bac990ffd26a", result.FirstMaterialGuid.ToString());
-        Assert.Equal("617ba9f1-1a4a-4ebb-9bc0-ba52b667ef97", result.SecondMaterialGuid.ToString());
-        Assert.Null(result.Result);
-        Assert.Equal("WEB_API", result.Source);
+        Assert.NotNull(result.Data);
+        Assert.Equal(jobId, result.Data.JobId);
+        Assert.Equal("test_jobname", result.Data.JobName);
+        Assert.Equal(DateTimeKind.Utc, result.Data.StartedDt.Kind);
+        Assert.Null(result.Data.CleanedDt);
+        Assert.Null(result.Data.FinishedDt);
+        Assert.Equal("c3211c12-c1b5-4ab0-9e1a-bac990ffd26a", result.Data.FirstMaterialGuid.ToString());
+        Assert.Equal("617ba9f1-1a4a-4ebb-9bc0-ba52b667ef97", result.Data.SecondMaterialGuid.ToString());
+        Assert.Null(result.Data.Result);
+        Assert.Equal("WEB_API", result.Data.Source);
     }
 
     [Fact]
@@ -218,18 +218,18 @@ public class HistoryServiceTest
                 MediaTypeNames.Application.Json,
                 HistoryPrintJob);
         var result = await _service.GetPrintJobById(jobId);
-        Assert.NotNull(result);
-        Assert.Equal(jobId, result.JobId);
-        Assert.Equal("test_jobname", result.JobName);
-        Assert.Equal(DateTimeKind.Utc, result.StartedDt.Kind);
-        Assert.NotNull(result.CleanedDt);
-        Assert.NotNull(result.FinishedDt);
-        Assert.Equal(DateTimeKind.Utc, result.CleanedDt.Value.Kind);
-        Assert.Equal(DateTimeKind.Utc, result.FinishedDt.Value.Kind);
-        Assert.Equal("c3211c12-c1b5-4ab0-9e1a-bac990ffd26a", result.FirstMaterialGuid.ToString());
-        Assert.Equal("617ba9f1-1a4a-4ebb-9bc0-ba52b667ef97", result.SecondMaterialGuid.ToString());
-        Assert.Equal(JobResult.FINISHED, result.Result);
-        Assert.Equal("WEB_API", result.Source);
+        Assert.NotNull(result.Data);
+        Assert.Equal(jobId, result.Data.JobId);
+        Assert.Equal("test_jobname", result.Data.JobName);
+        Assert.Equal(DateTimeKind.Utc, result.Data.StartedDt.Kind);
+        Assert.NotNull(result.Data.CleanedDt);
+        Assert.NotNull(result.Data.FinishedDt);
+        Assert.Equal(DateTimeKind.Utc, result.Data.CleanedDt.Value.Kind);
+        Assert.Equal(DateTimeKind.Utc, result.Data.FinishedDt.Value.Kind);
+        Assert.Equal("c3211c12-c1b5-4ab0-9e1a-bac990ffd26a", result.Data.FirstMaterialGuid.ToString());
+        Assert.Equal("617ba9f1-1a4a-4ebb-9bc0-ba52b667ef97", result.Data.SecondMaterialGuid.ToString());
+        Assert.Equal(JobResult.FINISHED, result.Data.Result);
+        Assert.Equal("WEB_API", result.Data.Source);
     }
 
     [Fact]
@@ -241,11 +241,11 @@ public class HistoryServiceTest
                 MediaTypeNames.Application.Json,
                 ListOfHistoryEvents);
         var result = await _service.GetEvents();
-        Assert.NotNull(result);
-        Assert.NotEmpty(result);
-        Assert.Equal(2, result.Length);
-        Assert.Equal(DateTimeKind.Utc, result[0].Time.Kind);
-        Assert.Equal(DateTimeKind.Utc, result[1].Time.Kind);
+        Assert.NotNull(result.Data);
+        Assert.NotEmpty(result.Data);
+        Assert.Equal(2, result.Data.Length);
+        Assert.Equal(DateTimeKind.Utc, result.Data[0].Time.Kind);
+        Assert.Equal(DateTimeKind.Utc, result.Data[1].Time.Kind);
     }
 
     [Fact]
@@ -258,10 +258,10 @@ public class HistoryServiceTest
                 MediaTypeNames.Application.Json,
                 HistoryEventsOfTypeId131072);
         var result = await _service.GetEvents(null, null, typeId);
-        Assert.NotNull(result);
-        Assert.NotEmpty(result);
-        Assert.Single(result);
-        Assert.Equal(DateTimeKind.Utc, result[0].Time.Kind);
-        Assert.Equal(typeId, result[0].TypeId);
+        Assert.NotNull(result.Data);
+        Assert.NotEmpty(result.Data);
+        Assert.Single(result.Data);
+        Assert.Equal(DateTimeKind.Utc, result.Data[0].Time.Kind);
+        Assert.Equal(typeId, result.Data[0].TypeId);
     }
 }

@@ -11,17 +11,18 @@ public class AuthService : ServiceBase
     public AuthService(HttpClient httpClient) : base(httpClient) { }
     public AuthService(HttpClient httpClient, NetworkCredential credential) : base(httpClient, credential) { }
 
-    public Task<AuthDto?> Request(RequestAuthDto request, CancellationToken ct = default)
+    public Task<UltimakerApiResponse<AuthDto?>> Request(RequestAuthDto request, CancellationToken ct = default)
         => RequestAuthAsync(UltimakerPaths.Auth.Request, request, ct);
 
-    public Task<CheckAuthDto?> Check(string id, CancellationToken ct = default)
+    public Task<UltimakerApiResponse<CheckAuthDto?>> Check(string id, CancellationToken ct = default)
         => GetAsync<CheckAuthDto>(UltimakerPaths.Auth.Check(id), ct);
 
-    public Task<HttpStatusCode> Verify(CancellationToken ct = default)
+    public Task<UltimakerApiResponse<HttpStatusCode>> Verify(CancellationToken ct = default)
         => VerifyAsync(UltimakerPaths.Auth.Verify, ct);
 
 
-    private async Task<AuthDto?> RequestAuthAsync(string path, RequestAuthDto request, CancellationToken ct = default)
+    private async Task<UltimakerApiResponse<AuthDto?>> RequestAuthAsync(string path, RequestAuthDto request,
+        CancellationToken ct = default)
     {
         var formData = new MultipartFormBuilder()
             .AddString("application", request.Application)
@@ -32,9 +33,9 @@ public class AuthService : ServiceBase
         return await PostAsync<AuthDto>(path, formData, ct);
     }
 
-    private async Task<HttpStatusCode> VerifyAsync(string path, CancellationToken ct = default)
+    private async Task<UltimakerApiResponse<HttpStatusCode>> VerifyAsync(string path, CancellationToken ct = default)
     {
         var response = await _httpClient.GetAsync(path, ct);
-        return response.StatusCode;
+        return new UltimakerApiResponse<HttpStatusCode>(response, response.StatusCode);
     }
 }

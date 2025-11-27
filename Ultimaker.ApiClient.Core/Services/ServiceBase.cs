@@ -35,37 +35,41 @@ public abstract class ServiceBase
             throw new MissingCredentialException("Credential is not set.");
     }
 
-    protected async Task<T?> GetAsync<T>(string path, CancellationToken ct = default)
+    protected async Task<UltimakerApiResponse<T?>> GetAsync<T>(string path, CancellationToken ct = default)
     {
         var response = await _httpClient.GetAsync(path, ct);
         if (response.IsNotFound())
-            return default;
+            return new UltimakerApiResponse<T?>(response);
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadAsStringAsync(ct);
-        return JsonConvert.DeserializeObject<T>(result, _jsonSetting);
+        var data = JsonConvert.DeserializeObject<T>(result, _jsonSetting);
+        return new UltimakerApiResponse<T?>(response, data);
     }
 
-    protected async Task<T?> PostAsync<T>(string path, HttpContent httpContent, CancellationToken ct = default)
+    protected async Task<UltimakerApiResponse<T?>> PostAsync<T>(string path, HttpContent httpContent, CancellationToken ct = default)
     {
         var response = await _httpClient.PostAsync(path, httpContent, ct);
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadAsStringAsync(ct);
-        return JsonConvert.DeserializeObject<T>(result, _jsonSetting);
+        var data = JsonConvert.DeserializeObject<T>(result, _jsonSetting);
+        return new UltimakerApiResponse<T?>(response, data);
     }
 
-    protected async Task<T?> PutAsync<T>(string path, HttpContent httpContent, CancellationToken ct = default)
+    protected async Task<UltimakerApiResponse<T?>> PutAsync<T>(string path, HttpContent httpContent, CancellationToken ct = default)
     {
         var response = await _httpClient.PutAsync(path, httpContent, ct);
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadAsStringAsync(ct);
-        return JsonConvert.DeserializeObject<T>(result, _jsonSetting);
+        var data = JsonConvert.DeserializeObject<T>(result, _jsonSetting);
+        return new UltimakerApiResponse<T?>(response, data);
     }
 
-    protected async Task<T?> DeleteAsync<T>(string path, CancellationToken ct = default)
+    protected async Task<UltimakerApiResponse<T?>> DeleteAsync<T>(string path, CancellationToken ct = default)
     {
         var response = await _httpClient.DeleteAsync(path, ct);
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadAsStringAsync(ct);
-        return JsonConvert.DeserializeObject<T>(result, _jsonSetting);
+        var data = JsonConvert.DeserializeObject<T>(result, _jsonSetting);
+        return new UltimakerApiResponse<T?>(response, data);
     }
 }

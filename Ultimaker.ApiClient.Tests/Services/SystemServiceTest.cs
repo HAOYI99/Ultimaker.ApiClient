@@ -62,23 +62,23 @@ public class SystemServiceTest
                 }
                 """);
         var result = await _service.Get();
-        Assert.NotNull(result);
-        Assert.Equal("8.2.0", result.Firmware);
-        Assert.Equal("ad5c572f-8f40-4170-9b6b-273c0b5616bc", result.Id.ToString());
-        Assert.Equal(5078167, result.Hardware.TypeId);
-        Assert.Equal(2, result.Hardware.Revision);
-        Assert.Equal("localhost:8080", result.Hostname);
-        Assert.False(result.IsCountryLocked);
-        Assert.Equal("en", result.Language);
-        Assert.Single(result.Logs);
-        Assert.Equal(1053614080, result.Memory.Total);
-        Assert.Equal(583208960, result.Memory.Used);
-        Assert.Equal("PrinterName", result.Name);
-        Assert.Equal("Linux-4.14.32-ultimaker+-armv7l-with-debian-10.1", result.Platform);
-        Assert.Equal(1758851833.8009684m, result.Time.UTC);
-        Assert.Equal("3D printer", result.Type);
-        Assert.Equal(1213056, result.Uptime);
-        Assert.Equal(PrinterVariant.S7, result.Variant);
+        Assert.NotNull(result.Data);
+        Assert.Equal("8.2.0", result.Data.Firmware);
+        Assert.Equal("ad5c572f-8f40-4170-9b6b-273c0b5616bc", result.Data.Id.ToString());
+        Assert.Equal(5078167, result.Data.Hardware.TypeId);
+        Assert.Equal(2, result.Data.Hardware.Revision);
+        Assert.Equal("localhost:8080", result.Data.Hostname);
+        Assert.False(result.Data.IsCountryLocked);
+        Assert.Equal("en", result.Data.Language);
+        Assert.Single(result.Data.Logs);
+        Assert.Equal(1053614080, result.Data.Memory.Total);
+        Assert.Equal(583208960, result.Data.Memory.Used);
+        Assert.Equal("PrinterName", result.Data.Name);
+        Assert.Equal("Linux-4.14.32-ultimaker+-armv7l-with-debian-10.1", result.Data.Platform);
+        Assert.Equal(1758851833.8009684m, result.Data.Time.UTC);
+        Assert.Equal("3D printer", result.Data.Type);
+        Assert.Equal(1213056, result.Data.Uptime);
+        Assert.Equal(PrinterVariant.S7, result.Data.Variant);
     }
 
     [Fact]
@@ -92,8 +92,8 @@ public class SystemServiceTest
                 "Linux-4.14.32-ultimaker+-armv7l-with-debian-10.1"
                 """);
         var result = await _service.GetPlatform();
-        Assert.NotNull(result);
-        Assert.Equal("Linux-4.14.32-ultimaker+-armv7l-with-debian-10.1", result);
+        Assert.NotNull(result.Data);
+        Assert.Equal("Linux-4.14.32-ultimaker+-armv7l-with-debian-10.1", result.Data);
     }
 
     [Fact]
@@ -107,8 +107,8 @@ public class SystemServiceTest
                 "localhost:8080"
                 """);
         var result = await _service.GetHostname();
-        Assert.NotNull(result);
-        Assert.Equal("localhost:8080", result);
+        Assert.NotNull(result.Data);
+        Assert.Equal("localhost:8080", result.Data);
     }
 
     [Fact]
@@ -122,8 +122,8 @@ public class SystemServiceTest
                 "8.2.0"
                 """);
         var result = await _service.GetFirmware();
-        Assert.NotNull(result);
-        Assert.Equal("8.2.0", result);
+        Assert.NotNull(result.Data);
+        Assert.Equal("8.2.0", result.Data);
     }
 
     [Fact]
@@ -137,8 +137,8 @@ public class SystemServiceTest
                 "IDLE"
                 """);
         var result = await _service.GetFirmwareStatus();
-        Assert.NotNull(result);
-        Assert.Equal("IDLE", result);
+        Assert.NotNull(result.Data);
+        Assert.Equal("IDLE", result.Data);
     }
 
     [Fact]
@@ -152,8 +152,8 @@ public class SystemServiceTest
                 "8.2.0"
                 """);
         var result = await _service.GetFirmwareStable();
-        Assert.NotNull(result);
-        Assert.Equal("8.2.0", result);
+        Assert.NotNull(result.Data);
+        Assert.Equal("8.2.0", result.Data);
     }
 
     [Fact]
@@ -167,8 +167,8 @@ public class SystemServiceTest
                 "8.2.0"
                 """);
         var result = await _service.GetFirmwareLatest();
-        Assert.NotNull(result);
-        Assert.Equal("8.2.0", result);
+        Assert.NotNull(result.Data);
+        Assert.Equal("8.2.0", result.Data);
     }
 
     [Fact]
@@ -185,9 +185,9 @@ public class SystemServiceTest
                     }
                 """);
         var result = await _service.GetMemory();
-        Assert.NotNull(result);
-        Assert.Equal(1053614080, result.Total);
-        Assert.Equal(583208960, result.Used);
+        Assert.NotNull(result.Data);
+        Assert.Equal(1053614080, result.Data.Total);
+        Assert.Equal(583208960, result.Data.Used);
     }
 
     [Fact]
@@ -203,8 +203,8 @@ public class SystemServiceTest
                 }
                 """);
         var result = await _service.GetTime();
-        Assert.NotNull(result);
-        Assert.Equal(1758851833.8009684m, result.UTC);
+        Assert.NotNull(result.Data);
+        Assert.Equal(1758851833.8009684m, result.Data.UTC);
     }
 
     [Fact]
@@ -220,8 +220,8 @@ public class SystemServiceTest
                 ]
                 """);
         var result = await _service.GetLogs();
-        Assert.NotNull(result);
-        Assert.Single(result);
+        Assert.NotNull(result.Data);
+        Assert.Single(result.Data);
     }
 
     [Fact]
@@ -238,8 +238,8 @@ public class SystemServiceTest
                 ]
                 """);
         var result = await _service.GetLogs(0, 1);
-        Assert.NotNull(result);
-        Assert.Single(result);
+        Assert.NotNull(result.Data);
+        Assert.Single(result.Data);
     }
 
     [Fact]
@@ -253,8 +253,8 @@ public class SystemServiceTest
                 "PrinterName"
                 """);
         var result = await _service.GetName();
-        Assert.NotNull(result);
-        Assert.Equal("PrinterName", result);
+        Assert.NotNull(result.Data);
+        Assert.Equal("PrinterName", result.Data);
     }
 
     [Fact]
@@ -268,8 +268,8 @@ public class SystemServiceTest
                 "US"
                 """);
         var result = await _service.GetCountry();
-        Assert.NotNull(result);
-        Assert.Equal("US", result);
+        Assert.NotNull(result.Data);
+        Assert.Equal("US", result.Data);
     }
 
     [Fact]
@@ -281,7 +281,7 @@ public class SystemServiceTest
                 MediaTypeNames.Application.Json,
                 "false");
         var result = await _service.GetIsCountryLocked();
-        Assert.False(result);
+        Assert.False(result.Data);
     }
 
     [Fact]
@@ -295,8 +295,8 @@ public class SystemServiceTest
                 "en"
                 """);
         var result = await _service.GetLanguage();
-        Assert.NotNull(result);
-        Assert.Equal("en", result);
+        Assert.NotNull(result.Data);
+        Assert.Equal("en", result.Data);
     }
 
     [Fact]
@@ -308,7 +308,7 @@ public class SystemServiceTest
                 MediaTypeNames.Application.Json,
                 "1213056");
         var result = await _service.GetUptime();
-        Assert.Equal(1213056, result);
+        Assert.Equal(1213056, result.Data);
     }
 
     [Fact]
@@ -323,7 +323,7 @@ public class SystemServiceTest
                 """);
         var result = await _service.GetType();
         Assert.NotNull(result);
-        Assert.Equal("3D printer", result);
+        Assert.Equal("3D printer", result.Data);
     }
 
     [Fact]
@@ -337,7 +337,7 @@ public class SystemServiceTest
                 "Ultimaker S7"
                 """);
         var result = await _service.GetVariant();
-        Assert.Equal(PrinterVariant.S7, result);
+        Assert.Equal(PrinterVariant.S7, result.Data);
     }
 
     [Fact]
@@ -354,9 +354,9 @@ public class SystemServiceTest
                 }
                 """);
         var result = await _service.GetHardware();
-        Assert.NotNull(result);
-        Assert.Equal(5078167, result.TypeId);
-        Assert.Equal(2, result.Revision);
+        Assert.NotNull(result.Data);
+        Assert.Equal(5078167, result.Data.TypeId);
+        Assert.Equal(2, result.Data.Revision);
     }
 
     [Fact]
@@ -368,7 +368,7 @@ public class SystemServiceTest
                 MediaTypeNames.Application.Json,
                 "5078167");
         var result = await _service.GetHardwareTypeId();
-        Assert.Equal(5078167, result);
+        Assert.Equal(5078167, result.Data);
     }
 
     [Fact]
@@ -380,7 +380,7 @@ public class SystemServiceTest
                 MediaTypeNames.Application.Json,
                 "2");
         var result = await _service.GetHardwareRevision();
-        Assert.Equal(2, result);
+        Assert.Equal(2, result.Data);
     }
 
     [Fact]
@@ -394,6 +394,6 @@ public class SystemServiceTest
                 "ad5c572f-8f40-4170-9b6b-273c0b5616bc"
                 """);
         var result = await _service.GetId();
-        Assert.Equal("ad5c572f-8f40-4170-9b6b-273c0b5616bc", result.ToString());
+        Assert.Equal("ad5c572f-8f40-4170-9b6b-273c0b5616bc", result.Data.ToString());
     }
 }

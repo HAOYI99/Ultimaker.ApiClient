@@ -40,9 +40,9 @@ public class AuthServiceTest
                 }
                 """);
         var result = await _service.Request(payload);
-        Assert.NotNull(result);
-        Assert.Equal("string", result.AuthId);
-        Assert.Equal("string", result.AuthKey);
+        Assert.NotNull(result.Data);
+        Assert.Equal("string", result.Data.AuthId);
+        Assert.Equal("string", result.Data.AuthKey);
     }
 
     [Fact]
@@ -58,8 +58,8 @@ public class AuthServiceTest
                 }
                 """);
         var result = await _service.Check("authId");
-        Assert.NotNull(result);
-        Assert.Equal(AuthStatus.UNAUTHORIZED, result.Status);
+        Assert.NotNull(result.Data);
+        Assert.Equal(AuthStatus.UNAUTHORIZED, result.Data.Status);
     }
 
     [Fact]
@@ -75,6 +75,6 @@ public class AuthServiceTest
                 }
                 """);
         var result = await _service.Verify();
-        Assert.Equal(HttpStatusCode.OK, result);
+        Assert.Equal(HttpStatusCode.OK, result.Data);
     }
 }
