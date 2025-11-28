@@ -11,20 +11,20 @@ public class MaterialService : ServiceBase
     public MaterialService(HttpClient httpClient) : base(httpClient) { }
     public MaterialService(HttpClient httpClient, NetworkCredential credential) : base(httpClient, credential) { }
 
-    public Task<string[]?> GetAll(CancellationToken ct = default)
+    public Task<UltimakerApiResponse<string[]?>> GetAll(CancellationToken ct = default)
         => GetAsync<string[]>(UltimakerPaths.Material.Base, ct);
 
-    public Task<ResultDto?> Upload(FileItem materialFile, CancellationToken ct = default)
+    public Task<UltimakerApiResponse<ResultDto?>> Upload(FileItem materialFile, CancellationToken ct = default)
         => PostFileAsync(UltimakerPaths.Material.Base, materialFile, ct);
 
-    public Task<string?> GetById(Guid id, CancellationToken ct = default)
+    public Task<UltimakerApiResponse<string?>> GetById(Guid id, CancellationToken ct = default)
         => GetAsync<string>(UltimakerPaths.Material.IdPath(id), ct);
 
-    public Task<ResultDto?> DeleteById(Guid id, CancellationToken ct = default)
+    public Task<UltimakerApiResponse<ResultDto?>> DeleteById(Guid id, CancellationToken ct = default)
         => DeleteAsync<ResultDto>(UltimakerPaths.Material.IdPath(id), ct);
 
 
-    private async Task<ResultDto?> PostFileAsync(string path, FileItem file, CancellationToken ct = default)
+    private async Task<UltimakerApiResponse<ResultDto?>> PostFileAsync(string path, FileItem file, CancellationToken ct = default)
     {
         var formData = new MultipartFormBuilder()
             .AddString("filename", file.FileName)

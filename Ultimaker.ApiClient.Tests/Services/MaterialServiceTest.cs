@@ -39,8 +39,8 @@ public class MaterialServiceTest
                 ]
                 """);
         var result = await _service.GetAll();
-        Assert.NotNull(result);
-        Assert.Single(result);
+        Assert.NotNull(result.Data);
+        Assert.Single(result.Data);
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class MaterialServiceTest
                 "<xml..../>"
                 """);
         var result = await _service.GetById(id);
-        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class MaterialServiceTest
                 }
                 """);
         var result = await _service.GetById(id);
-        Assert.Null(result);
+        Assert.Null(result.Data);
     }
 
     [Fact]
@@ -90,9 +90,9 @@ public class MaterialServiceTest
                 }
                 """);
         var result = await _authedService.DeleteById(id);
-        Assert.NotNull(result);
-        Assert.True(result.Success);
-        Assert.NotEmpty(result.Message);
+        Assert.NotNull(result.Data);
+        Assert.True(result.Data.Success);
+        Assert.NotEmpty(result.Data.Message);
     }
 
     [Fact]
@@ -110,9 +110,9 @@ public class MaterialServiceTest
                 """);
         var file = new FileItem([0x01, 0x02, 0x03], "test.xml.fdm_material");
         var result = await _authedService.Upload(file);
-        Assert.NotNull(result);
-        Assert.True(result.Success);
-        Assert.NotEmpty(result.Message);
+        Assert.NotNull(result.Data);
+        Assert.True(result.Data.Success);
+        Assert.NotEmpty(result.Data.Message);
     }
     
     [Fact]
@@ -130,8 +130,8 @@ public class MaterialServiceTest
                 """);
         var file = new FileItem([0x01, 0x02, 0x03], "test.xml.fdm_material");
         var result = await _authedService.Upload(file);
-        Assert.NotNull(result);
-        Assert.False(result.Success);
-        Assert.NotEmpty(result.Message);
+        Assert.NotNull(result.Data);
+        Assert.False(result.Data.Success);
+        Assert.NotEmpty(result.Data.Message);
     }
 }

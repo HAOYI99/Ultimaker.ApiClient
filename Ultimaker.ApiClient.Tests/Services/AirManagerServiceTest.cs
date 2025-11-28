@@ -44,14 +44,14 @@ public class AirManagerServiceTest
                 }
                 """);
         var result = await _service.Get();
-        Assert.NotNull(result);
-        Assert.Equal(33, result!.AmbientTemperature);
-        Assert.Equal(36, result.ExhaustTemperature);
-        Assert.Equal(626, result.FanSpeed);
-        Assert.Equal(1051, result.FilterAge);
-        Assert.Equal(1500, result.FilterMaxAge);
-        Assert.Equal(AirManagerFilterStatus.PEAK_PERFORMANCE, result.FilterStatus);
-        Assert.Equal("1639647304", result.FirmwareVersion);
-        Assert.Equal(AirManagerStatus.AVAILABLE, result.Status);
+        Assert.NotNull(result.Data);
+        Assert.Equal(33, result.Data.AmbientTemperature);
+        Assert.Equal(36, result.Data.ExhaustTemperature);
+        Assert.Equal(626, result.Data.FanSpeed);
+        Assert.Equal(1051, result.Data.FilterAge);
+        Assert.Equal(1500, result.Data.FilterMaxAge);
+        Assert.Equal(AirManagerFilterStatus.PEAK_PERFORMANCE, result.Data.FilterStatus);
+        Assert.Equal("1639647304", result.Data.FirmwareVersion);
+        Assert.Equal(AirManagerStatus.AVAILABLE, result.Data.Status);
     }
 }

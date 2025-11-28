@@ -55,17 +55,17 @@ public class PrintJobServiceTest
                 }
                 """);
         var result = await _service.Get();
-        Assert.NotNull(result);
-        Assert.Null(result.CleanedDt);
-        Assert.Null(result.FinishedDt);
-        Assert.Equal(DateTimeKind.Utc, result.StartedDt.Kind);
-        Assert.Equal("test_jobname", result.JobName);
-        Assert.Equal(0.99m, result.Progress);
-        Assert.Equal(JobResult.EMPTY, result.Result);
-        Assert.Equal(JobState.PRINTING, result.State);
-        Assert.Equal(86697, result.TimeElapsed);
-        Assert.Equal(87665, result.TimeTotal);
-        Assert.Equal("b2a309ce-692d-4bea-ad14-85aceacacf24", result.JobId.ToString());
+        Assert.NotNull(result.Data);
+        Assert.Null(result.Data.CleanedDt);
+        Assert.Null(result.Data.FinishedDt);
+        Assert.Equal(DateTimeKind.Utc, result.Data.StartedDt.Kind);
+        Assert.Equal("test_jobname", result.Data.JobName);
+        Assert.Equal(0.99m, result.Data.Progress);
+        Assert.Equal(JobResult.EMPTY, result.Data.Result);
+        Assert.Equal(JobState.PRINTING, result.Data.State);
+        Assert.Equal(86697, result.Data.TimeElapsed);
+        Assert.Equal(87665, result.Data.TimeTotal);
+        Assert.Equal("b2a309ce-692d-4bea-ad14-85aceacacf24", result.Data.JobId.ToString());
     }
 
     [Fact]
@@ -95,18 +95,18 @@ public class PrintJobServiceTest
                 }
                 """);
         var result = await _service.Get();
-        Assert.NotNull(result);
-        Assert.Null(result.CleanedDt);
-        Assert.NotNull(result.FinishedDt);
-        Assert.Equal(DateTimeKind.Utc, result.FinishedDt.Value.Kind);
-        Assert.Equal(DateTimeKind.Utc, result.StartedDt.Kind);
-        Assert.Equal("test_jobname", result.JobName);
-        Assert.Equal(1, result.Progress);
-        Assert.Equal(JobResult.FINISHED, result.Result);
-        Assert.Equal(JobState.POST_PRINT, result.State);
-        Assert.Equal(87625, result.TimeElapsed);
-        Assert.Equal(87622, result.TimeTotal);
-        Assert.Equal("b2a309ce-692d-4bea-ad14-85aceacacf24", result.JobId.ToString());
+        Assert.NotNull(result.Data);
+        Assert.Null(result.Data.CleanedDt);
+        Assert.NotNull(result.Data.FinishedDt);
+        Assert.Equal(DateTimeKind.Utc, result.Data.FinishedDt.Value.Kind);
+        Assert.Equal(DateTimeKind.Utc, result.Data.StartedDt.Kind);
+        Assert.Equal("test_jobname", result.Data.JobName);
+        Assert.Equal(1, result.Data.Progress);
+        Assert.Equal(JobResult.FINISHED, result.Data.Result);
+        Assert.Equal(JobState.POST_PRINT, result.Data.State);
+        Assert.Equal(87625, result.Data.TimeElapsed);
+        Assert.Equal(87622, result.Data.TimeTotal);
+        Assert.Equal("b2a309ce-692d-4bea-ad14-85aceacacf24", result.Data.JobId.ToString());
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public class PrintJobServiceTest
             .When($"{BaseUrl}/{UltimakerPaths.PrintJob.Base}")
             .Respond(HttpStatusCode.NoContent);
         var result = await _service.Get();
-        Assert.Null(result);
+        Assert.Null(result.Data);
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public class PrintJobServiceTest
                 "test_jobname"
                 """);
         var result = await _service.GetName();
-        Assert.Equal("test_jobname", result);
+        Assert.Equal("test_jobname", result.Data);
     }
 
     [Fact]
@@ -144,8 +144,8 @@ public class PrintJobServiceTest
                 "2025-09-25T02:21:59"
                 """);
         var result = await _service.GetStartedDt();
-        Assert.NotNull(result);
-        Assert.Equal(DateTimeKind.Utc, result.Value.Kind);
+        Assert.NotNull(result.Data);
+        Assert.Equal(DateTimeKind.Utc, result.Data.Value.Kind);
     }
 
     [Fact]
@@ -159,8 +159,8 @@ public class PrintJobServiceTest
                 "2025-09-25T02:21:59"
                 """);
         var result = await _service.GetFinishedDt();
-        Assert.NotNull(result);
-        Assert.Equal(DateTimeKind.Utc, result.Value.Kind);
+        Assert.NotNull(result.Data);
+        Assert.Equal(DateTimeKind.Utc, result.Data.Value.Kind);
     }
 
     [Fact]
@@ -174,8 +174,8 @@ public class PrintJobServiceTest
                 "2025-09-25T02:21:59"
                 """);
         var result = await _service.GetCleanedDt();
-        Assert.NotNull(result);
-        Assert.Equal(DateTimeKind.Utc, result.Value.Kind);
+        Assert.NotNull(result.Data);
+        Assert.Equal(DateTimeKind.Utc, result.Data.Value.Kind);
     }
 
     [Fact]
@@ -189,8 +189,8 @@ public class PrintJobServiceTest
                 "b2a309ce-692d-4bea-ad14-85aceacacf24"
                 """);
         var result = await _service.GetJobId();
-        Assert.NotNull(result);
-        Assert.Equal("b2a309ce-692d-4bea-ad14-85aceacacf24", result.ToString());
+        Assert.NotNull(result.Data);
+        Assert.Equal("b2a309ce-692d-4bea-ad14-85aceacacf24", result.Data.ToString());
     }
 
     [Fact]
@@ -204,8 +204,8 @@ public class PrintJobServiceTest
                 "0.99"
                 """);
         var result = await _service.GetProgress();
-        Assert.NotNull(result);
-        Assert.Equal(0.99m, result);
+        Assert.NotNull(result.Data);
+        Assert.Equal(0.99m, result.Data);
     }
 
     [Fact]
@@ -219,8 +219,8 @@ public class PrintJobServiceTest
                 "wait_cleanup"
                 """);
         var result = await _service.GetJobState();
-        Assert.NotNull(result);
-        Assert.Equal(JobState.WAIT_CLEANUP, result);
+        Assert.NotNull(result.Data);
+        Assert.Equal(JobState.WAIT_CLEANUP, result.Data);
     }
 
     [Fact]
@@ -234,8 +234,8 @@ public class PrintJobServiceTest
                 "Finished"
                 """);
         var result = await _service.GetJobResult();
-        Assert.NotNull(result);
-        Assert.Equal(JobResult.FINISHED, result);
+        Assert.NotNull(result.Data);
+        Assert.Equal(JobResult.FINISHED, result.Data);
     }
 
     [Fact]
@@ -249,8 +249,8 @@ public class PrintJobServiceTest
                 "86697"
                 """);
         var result = await _service.GetTimeElapsed();
-        Assert.NotNull(result);
-        Assert.Equal(86697, result);
+        Assert.NotNull(result.Data);
+        Assert.Equal(86697, result.Data);
     }
 
     [Fact]
@@ -264,8 +264,8 @@ public class PrintJobServiceTest
                 "87665"
                 """);
         var result = await _service.GetTimeTotal();
-        Assert.NotNull(result);
-        Assert.Equal(87665, result);
+        Assert.NotNull(result.Data);
+        Assert.Equal(87665, result.Data);
     }
 
     [Fact]
@@ -279,8 +279,8 @@ public class PrintJobServiceTest
                 "WEB_API"
                 """);
         var result = await _service.GetSource();
-        Assert.NotNull(result);
-        Assert.Equal("WEB_API", result);
+        Assert.NotNull(result.Data);
+        Assert.Equal("WEB_API", result.Data);
     }
 
     [Fact]
@@ -294,8 +294,8 @@ public class PrintJobServiceTest
                 "abc"
                 """);
         var result = await _service.GetSourceUser();
-        Assert.NotNull(result);
-        Assert.Equal("abc", result);
+        Assert.NotNull(result.Data);
+        Assert.Equal("abc", result.Data);
     }
 
     [Fact]
@@ -309,8 +309,8 @@ public class PrintJobServiceTest
                 "abc"
                 """);
         var result = await _service.GetSourceApp();
-        Assert.NotNull(result);
-        Assert.Equal("abc", result);
+        Assert.NotNull(result.Data);
+        Assert.Equal("abc", result.Data);
     }
 
     [Fact]
@@ -324,8 +324,8 @@ public class PrintJobServiceTest
                 "test"
                 """);
         var result = await _service.GetPauseSrc();
-        Assert.NotNull(result);
-        Assert.Equal("test", result);
+        Assert.NotNull(result.Data);
+        Assert.Equal("test", result.Data);
     }
 
     [Fact]
@@ -339,8 +339,8 @@ public class PrintJobServiceTest
                 "b2a309ce-692d-4bea-ad14-85aceacacf24"
                 """);
         var result = await _service.GetReprintOriginalUuid();
-        Assert.NotNull(result);
-        Assert.Equal("b2a309ce-692d-4bea-ad14-85aceacacf24", result.ToString());
+        Assert.NotNull(result.Data);
+        Assert.Equal("b2a309ce-692d-4bea-ad14-85aceacacf24", result.Data.ToString());
     }
 
     [Fact]
@@ -354,7 +354,7 @@ public class PrintJobServiceTest
                 ""
                 """);
         var result = await _service.GetReprintOriginalUuid();
-        Assert.Null(result);
+        Assert.Null(result.Data);
     }
 
     [Fact]
@@ -368,7 +368,7 @@ public class PrintJobServiceTest
                 ...long gcode...
                 """);
         var result = await _authedService.GetGCode();
-        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
     }
     
     [Fact]
@@ -382,7 +382,7 @@ public class PrintJobServiceTest
                 {"message" : "Not found"}
                 """);
         var result = await _authedService.GetGCode();
-        Assert.Null(result);
+        Assert.Null(result.Data);
     }
 
     [Fact]
@@ -398,10 +398,10 @@ public class PrintJobServiceTest
             .When( $"{BaseUrl}/{UltimakerPaths.PrintJob.Container}")
             .Respond(HttpStatusCode.OK, content);
         var result = await _authedService.GetContainer();
-        Assert.NotNull(result);
-        Assert.Equal("test-jobname.ufp", result.FileName);
-        Assert.Equal(fakeData, result.Content);
-        Assert.Equal("test-jobname", result.FileNameOnly);
+        Assert.NotNull(result.Data);
+        Assert.Equal("test-jobname.ufp", result.Data.FileName);
+        Assert.Equal(fakeData, result.Data.Content);
+        Assert.Equal("test-jobname", result.Data.FileNameOnly);
     }
     
     [Fact]
@@ -415,7 +415,7 @@ public class PrintJobServiceTest
                 {"message" : "Not found"}
                 """);
         var result = await _authedService.GetContainer();
-        Assert.Null(result);
+        Assert.Null(result.Data);
     }
 
     [Fact]
@@ -425,7 +425,7 @@ public class PrintJobServiceTest
             .When(HttpMethod.Put, $"{BaseUrl}/{UltimakerPaths.PrintJob.State}")
             .Respond(HttpStatusCode.NoContent);
         var result = await _authedService.SetJobState(UpdateJobStateOpt.ABORT);
-        Assert.True(result);
+        Assert.Equal(HttpStatusCode.NoContent, result.Data);
     }
 
     [Fact]
@@ -444,8 +444,8 @@ public class PrintJobServiceTest
                 """);
         var fileItem = new FileItem(fakeData, "test-jobname.ufp");
         var result = await _authedService.Start(fileItem);
-        Assert.NotNull(result);
-        Assert.NotEmpty(result.Message);
-        Assert.Equal("b2a309ce-692d-4bea-ad14-85aceacacf24", result.JobId.ToString());
+        Assert.NotNull(result.Data);
+        Assert.NotEmpty(result.Data.Message);
+        Assert.Equal("b2a309ce-692d-4bea-ad14-85aceacacf24", result.Data.JobId.ToString());
     }
 }

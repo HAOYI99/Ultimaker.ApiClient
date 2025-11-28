@@ -10,6 +10,6 @@ public class AirManagerService : ServiceBase
 
     public AirManagerService(HttpClient httpClient, NetworkCredential credential) : base(httpClient, credential) { }
 
-    public Task<AirManagerDto?> Get(CancellationToken ct = default)
+    public Task<UltimakerApiResponse<AirManagerDto?>> Get(CancellationToken ct = default)
         => GetAsync<AirManagerDto>(UltimakerPaths.AirManager.Base, ct);
 }
