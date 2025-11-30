@@ -5,5 +5,6 @@ public enum AirManagerFilterStatus
     UNKNOWN,
     PEAK_PERFORMANCE,
     REPLACEMENT_NEAR,
-    REPLACEMENT_REQUIRED
+    REPLACEMENT_REQUIRED,
+    MISSING
 }
