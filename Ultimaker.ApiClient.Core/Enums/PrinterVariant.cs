@@ -9,5 +9,5 @@ public enum PrinterVariant
     [EnumMember(Value = "Ultimaker S7")]
     S7,
     [EnumMember(Value = "Ultimaker S8")]
-    S8
+    S8,
 }
