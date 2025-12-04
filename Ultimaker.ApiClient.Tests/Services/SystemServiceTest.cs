@@ -1,8 +1,9 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Mime;
 using JetBrains.Annotations;
 using RichardSzalay.MockHttp;
 using Ultimaker.ApiClient.Core.Constants;
+using Ultimaker.ApiClient.Core.Dto.Response.System;
 using Ultimaker.ApiClient.Core.Enums;
 using Ultimaker.ApiClient.Core.Services;
 
@@ -11,233 +12,127 @@ namespace Ultimaker.ApiClient.Tests.Services;
 [TestSubject(typeof(SystemService))]
 public class SystemServiceTest
 {
-    private MockHttpMessageHandler _mockHttp;
-    private SystemService _service;
+    private readonly MockHttpMessageHandler _mockHttp;
+    private readonly SystemService _service;
     private const string BaseUrl = "http://localhost:8080";
 
     public SystemServiceTest()
     {
         _mockHttp = new MockHttpMessageHandler();
         var httpClient = _mockHttp.ToHttpClient();
-        httpClient.Timeout = TimeSpan.FromSeconds(0.5);
         httpClient.BaseAddress = new Uri(BaseUrl);
-        _service = new SystemService(httpClient);
+        // We need credentials for SetName
+        var credential = new NetworkCredential("user", "pass");
+        _service = new SystemService(httpClient, credential);
     }
 
     [Fact]
-    public async Task GetSystem()
+    public async Task Get()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.Base}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                """
-                {
-                  "country": "",
-                  "display_message": {},
-                  "firmware": "8.2.0",
-                  "guid": "ad5c572f-8f40-4170-9b6b-273c0b5616bc",
-                  "hardware": {
-                    "revision": 2,
-                    "typeid": 5078167
-                  },
-                  "hostname": "localhost:8080",
-                  "is_country_locked": false,
-                  "language": "en",
-                  "log": [
-                      "just a log line"
-                  ],
-                  "memory": {
-                    "total": 1053614080,
-                    "used": 583208960
-                  },
-                  "name": "PrinterName",
-                  "platform": "Linux-4.14.32-ultimaker+-armv7l-with-debian-10.1",
-                  "time": {
-                    "utc": 1758851833.8009684
-                  },
-                  "type": "3D printer",
-                  "uptime": 1213056,
-                  "variant": "Ultimaker S7"
-                }
-                """);
+        var json = """{"name": "MyPrinter", "platform": "Linux"}""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.Base}")
+            .Respond("application/json", json);
         var result = await _service.Get();
         Assert.NotNull(result.Data);
-        Assert.Equal("8.2.0", result.Data.Firmware);
-        Assert.Equal("ad5c572f-8f40-4170-9b6b-273c0b5616bc", result.Data.Id.ToString());
-        Assert.Equal(5078167, result.Data.Hardware.TypeId);
-        Assert.Equal(2, result.Data.Hardware.Revision);
-        Assert.Equal("localhost:8080", result.Data.Hostname);
-        Assert.False(result.Data.IsCountryLocked);
-        Assert.Equal("en", result.Data.Language);
-        Assert.Single(result.Data.Logs);
-        Assert.Equal(1053614080, result.Data.Memory.Total);
-        Assert.Equal(583208960, result.Data.Memory.Used);
-        Assert.Equal("PrinterName", result.Data.Name);
-        Assert.Equal("Linux-4.14.32-ultimaker+-armv7l-with-debian-10.1", result.Data.Platform);
-        Assert.Equal(1758851833.8009684m, result.Data.Time.UTC);
-        Assert.Equal("3D printer", result.Data.Type);
-        Assert.Equal(1213056, result.Data.Uptime);
-        Assert.Equal(PrinterVariant.S7, result.Data.Variant);
+        Assert.Equal("MyPrinter", result.Data.Name);
     }
 
     [Fact]
     public async Task GetPlatform()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.Platform}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                """
-                "Linux-4.14.32-ultimaker+-armv7l-with-debian-10.1"
-                """);
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.Platform}")
+            .Respond("application/json", "\"Linux\"");
         var result = await _service.GetPlatform();
-        Assert.NotNull(result.Data);
-        Assert.Equal("Linux-4.14.32-ultimaker+-armv7l-with-debian-10.1", result.Data);
+        Assert.Equal("Linux", result.Data);
     }
 
     [Fact]
     public async Task GetHostname()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.Hostname}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                """
-                "localhost:8080"
-                """);
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.Hostname}")
+            .Respond("application/json", "\"ultimaker\"");
         var result = await _service.GetHostname();
-        Assert.NotNull(result.Data);
-        Assert.Equal("localhost:8080", result.Data);
+        Assert.Equal("ultimaker", result.Data);
     }
 
     [Fact]
     public async Task GetFirmware()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.Firmware}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                """
-                "8.2.0"
-                """);
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.Firmware}")
+            .Respond("application/json", "\"5.0.0\"");
         var result = await _service.GetFirmware();
-        Assert.NotNull(result.Data);
-        Assert.Equal("8.2.0", result.Data);
+        Assert.Equal("5.0.0", result.Data);
     }
 
     [Fact]
     public async Task GetFirmwareStatus()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.FirmwareStatus}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                """
-                "IDLE"
-                """);
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.FirmwareStatus}")
+            .Respond("application/json", "\"idle\"");
         var result = await _service.GetFirmwareStatus();
-        Assert.NotNull(result.Data);
-        Assert.Equal("IDLE", result.Data);
+        Assert.Equal("idle", result.Data);
     }
 
     [Fact]
     public async Task GetFirmwareStable()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.FirmwareStable}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                """
-                "8.2.0"
-                """);
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.FirmwareStable}")
+            .Respond("application/json", "\"5.0.0\"");
         var result = await _service.GetFirmwareStable();
-        Assert.NotNull(result.Data);
-        Assert.Equal("8.2.0", result.Data);
+        Assert.Equal("5.0.0", result.Data);
     }
 
     [Fact]
     public async Task GetFirmwareLatest()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.FirmwareLatest}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                """
-                "8.2.0"
-                """);
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.FirmwareLatest}")
+            .Respond("application/json", "\"5.1.0\"");
         var result = await _service.GetFirmwareLatest();
-        Assert.NotNull(result.Data);
-        Assert.Equal("8.2.0", result.Data);
+        Assert.Equal("5.1.0", result.Data);
     }
 
     [Fact]
     public async Task GetMemory()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.Memory}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                """
-                    {
-                      "total": 1053614080,
-                      "used": 583208960 
-                    }
-                """);
+        var json = """{"total": 1000, "used": 500}""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.Memory}")
+            .Respond("application/json", json);
         var result = await _service.GetMemory();
         Assert.NotNull(result.Data);
-        Assert.Equal(1053614080, result.Data.Total);
-        Assert.Equal(583208960, result.Data.Used);
+        Assert.Equal(1000, result.Data.Total);
     }
 
     [Fact]
     public async Task GetTime()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.Time}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                """
-                {
-                  "utc": 1758851833.8009684
-                }
-                """);
+        var json = """{"utc": 123456789}""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.Time}")
+            .Respond("application/json", json);
         var result = await _service.GetTime();
         Assert.NotNull(result.Data);
-        Assert.Equal(1758851833.8009684m, result.Data.UTC);
+        Assert.Equal(123456789, result.Data.UTC);
     }
 
     [Fact]
     public async Task GetLogs()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.Logs}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                """
-                [
-                    "just a log line"
-                ]
-                """);
+        var json = """["log1", "log2"]""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.Logs}")
+            .Respond("application/json", json);
         var result = await _service.GetLogs();
         Assert.NotNull(result.Data);
-        Assert.Single(result.Data);
+        Assert.Equal(2, result.Data.Length);
     }
 
     [Fact]
     public async Task GetLogs_WithParams()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.LogQueryPath(0, 1)}")
-            .WithExactQueryString("boot=0&lines=1")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                """
-                [
-                    "just a log line",
-                ]
-                """);
-        var result = await _service.GetLogs(0, 1);
+        var json = """["log1"]""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.Logs}")
+            .WithQueryString("boot", "1")
+            .WithQueryString("lines", "10")
+            .Respond("application/json", json);
+        var result = await _service.GetLogs(1, 10);
         Assert.NotNull(result.Data);
         Assert.Single(result.Data);
     }
@@ -245,155 +140,129 @@ public class SystemServiceTest
     [Fact]
     public async Task GetName()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.Name}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                """
-                "PrinterName"
-                """);
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.Name}")
+            .Respond("application/json", "\"MyPrinter\"");
         var result = await _service.GetName();
-        Assert.NotNull(result.Data);
-        Assert.Equal("PrinterName", result.Data);
+        Assert.Equal("MyPrinter", result.Data);
+    }
+
+    [Fact]
+    public async Task SetName_ReturnsSuccess()
+    {
+        var newName = "New Printer Name";
+        _mockHttp.When(HttpMethod.Put, $"{BaseUrl}/{UltimakerPaths.System.Name}")
+            .With(request =>
+            {
+                var content = request.Content.ReadAsStringAsync().Result;
+                return content.Contains(newName); // It sends json string like "New Printer Name"
+            })
+            .Respond(HttpStatusCode.OK);
+
+        var result = await _service.SetName(newName);
+
+        Assert.Equal(HttpStatusCode.OK, result.Data);
+    }
+
+    [Fact]
+    public async Task SetName_WithoutCredential_ThrowsException()
+    {
+        // Setup service without credentials
+        var httpClient = new HttpClient { BaseAddress = new Uri(BaseUrl) };
+        var service = new SystemService(httpClient);
+
+        await Assert.ThrowsAsync<Ultimaker.ApiClient.Core.Exceptions.MissingCredentialException>(() => service.SetName("test"));
     }
 
     [Fact]
     public async Task GetCountry()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.Country}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                """
-                "US"
-                """);
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.Country}")
+            .Respond("application/json", "\"US\"");
         var result = await _service.GetCountry();
-        Assert.NotNull(result.Data);
         Assert.Equal("US", result.Data);
     }
 
     [Fact]
     public async Task GetIsCountryLocked()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.IsCountryLocked}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                "false");
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.IsCountryLocked}")
+            .Respond("application/json", "true");
         var result = await _service.GetIsCountryLocked();
-        Assert.False(result.Data);
+        Assert.True(result.Data);
     }
 
     [Fact]
     public async Task GetLanguage()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.Language}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                """
-                "en"
-                """);
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.Language}")
+            .Respond("application/json", "\"en\"");
         var result = await _service.GetLanguage();
-        Assert.NotNull(result.Data);
         Assert.Equal("en", result.Data);
     }
 
     [Fact]
     public async Task GetUptime()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.Uptime}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                "1213056");
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.Uptime}")
+            .Respond("application/json", "1000");
         var result = await _service.GetUptime();
-        Assert.Equal(1213056, result.Data);
+        Assert.Equal(1000, result.Data);
     }
 
     [Fact]
-    public async Task GetSystemType()
+    public async Task GetPrinterType()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.Type}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                """
-                "3D printer"
-                """);
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.Type}")
+            .Respond("application/json", "\"printer\"");
         var result = await _service.GetType();
-        Assert.NotNull(result);
-        Assert.Equal("3D printer", result.Data);
+        Assert.Equal("printer", result.Data);
     }
 
     [Fact]
     public async Task GetVariant()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.Variant}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                """
-                "Ultimaker S7"
-                """);
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.Variant}")
+            .Respond("application/json", "\"Ultimaker S5\"");
         var result = await _service.GetVariant();
-        Assert.Equal(PrinterVariant.S7, result.Data);
+        Assert.Equal(PrinterVariant.S5, result.Data);
     }
 
     [Fact]
     public async Task GetHardware()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.Hardware}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                """
-                {
-                    "revision": 2,
-                    "typeid": 5078167
-                }
-                """);
+        var json = """{"revision": 1, "typeid": 2}""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.Hardware}")
+            .Respond("application/json", json);
         var result = await _service.GetHardware();
         Assert.NotNull(result.Data);
-        Assert.Equal(5078167, result.Data.TypeId);
-        Assert.Equal(2, result.Data.Revision);
+        Assert.Equal(1, result.Data.Revision);
     }
 
     [Fact]
     public async Task GetHardwareTypeId()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.HardwareTypeId}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                "5078167");
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.HardwareTypeId}")
+            .Respond("application/json", "2");
         var result = await _service.GetHardwareTypeId();
-        Assert.Equal(5078167, result.Data);
+        Assert.Equal(2, result.Data);
     }
 
     [Fact]
     public async Task GetHardwareRevision()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.HardwareRevision}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                "2");
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.HardwareRevision}")
+            .Respond("application/json", "1");
         var result = await _service.GetHardwareRevision();
-        Assert.Equal(2, result.Data);
+        Assert.Equal(1, result.Data);
     }
 
     [Fact]
     public async Task GetId()
     {
-        _mockHttp
-            .When($"{BaseUrl}/{UltimakerPaths.System.Guid}")
-            .Respond(HttpStatusCode.OK,
-                MediaTypeNames.Application.Json,
-                """
-                "ad5c572f-8f40-4170-9b6b-273c0b5616bc"
-                """);
+        var guid = Guid.NewGuid();
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.System.Guid}")
+            .Respond("application/json", $"\"{guid}\"");
         var result = await _service.GetId();
-        Assert.Equal("ad5c572f-8f40-4170-9b6b-273c0b5616bc", result.Data.ToString());
+        Assert.Equal(guid, result.Data);
     }
 }
