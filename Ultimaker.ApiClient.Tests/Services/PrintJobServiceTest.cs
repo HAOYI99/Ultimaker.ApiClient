@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Mime;
 using JetBrains.Annotations;
 using RichardSzalay.MockHttp;
+using Ultimaker.ApiClient.Core;
 using Ultimaker.ApiClient.Core.Constants;
 using Ultimaker.ApiClient.Core.Dto;
 using Ultimaker.ApiClient.Core.Enums;
@@ -17,6 +18,17 @@ public class PrintJobServiceTest
     private readonly PrintJobService _service;
     private readonly PrintJobService _authedService;
     private const string BaseUrl = "http://localhost:8080";
+
+    private async Task AssertStateTransition(Func<Task<UltimakerApiResponse<HttpStatusCode>>> action)
+    {
+        _mockHttp
+            .When(HttpMethod.Put, $"{BaseUrl}/{UltimakerPaths.PrintJob.State}")
+            .Respond(HttpStatusCode.NoContent);
+
+        var result = await action();
+
+        Assert.Equal(HttpStatusCode.NoContent, result.Data);
+    }
 
     public PrintJobServiceTest()
     {
@@ -419,13 +431,21 @@ public class PrintJobServiceTest
     }
 
     [Fact]
-    public async Task UpdateJobState()
+    public async Task Pause()
     {
-        _mockHttp
-            .When(HttpMethod.Put, $"{BaseUrl}/{UltimakerPaths.PrintJob.State}")
-            .Respond(HttpStatusCode.NoContent);
-        var result = await _authedService.SetJobState(UpdateJobStateOpt.ABORT);
-        Assert.Equal(HttpStatusCode.NoContent, result.Data);
+        await AssertStateTransition(() => _authedService.Pause());
+    }
+
+    [Fact]
+    public async Task Resume()
+    {
+        await AssertStateTransition(() => _authedService.Resume());
+    }
+
+    [Fact]
+    public async Task Stop()
+    {
+        await AssertStateTransition(() => _authedService.Stop());
     }
 
     [Fact]

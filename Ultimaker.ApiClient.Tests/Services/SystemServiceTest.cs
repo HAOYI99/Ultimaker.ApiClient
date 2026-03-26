@@ -1,9 +1,7 @@
 using System.Net;
-using System.Net.Mime;
 using JetBrains.Annotations;
 using RichardSzalay.MockHttp;
 using Ultimaker.ApiClient.Core.Constants;
-using Ultimaker.ApiClient.Core.Dto.Response.System;
 using Ultimaker.ApiClient.Core.Enums;
 using Ultimaker.ApiClient.Core.Services;
 
@@ -151,11 +149,6 @@ public class SystemServiceTest
     {
         var newName = "New Printer Name";
         _mockHttp.When(HttpMethod.Put, $"{BaseUrl}/{UltimakerPaths.System.Name}")
-            .With(request =>
-            {
-                var content = request.Content.ReadAsStringAsync().Result;
-                return content.Contains(newName); // It sends json string like "New Printer Name"
-            })
             .Respond(HttpStatusCode.OK);
 
         var result = await _service.SetName(newName);

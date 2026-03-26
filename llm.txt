@@ -1,0 +1,194 @@
+﻿# Ultimaker.ApiClient
+
+AI reference for this repository.
+
+## What this project is
+- Unofficial .NET 8 client library for the Ultimaker REST API.
+- Primary package/project: `Ultimaker.ApiClient.Core/Ultimaker.ApiClient.Core.csproj`.
+- NuGet package id: `Ultimaker.ApiClient`.
+- JSON library: `Newtonsoft.Json`.
+- Test stack: `xUnit` + `RichardSzalay.MockHttp`.
+
+## Solution layout
+- `Ultimaker.ApiClient.Core/`
+  - Library code that is published to NuGet.
+  - `UltimakerClient.cs`: main entry point that wires all services.
+  - `Services/`: API-specific service classes.
+  - `Dto/`: request/response models.
+  - `Enums/`: API enum mappings.
+  - `Constants/UltimakerPaths.cs`: all endpoint paths.
+  - `Utils/` and `Helper/`: shared helpers for enum serialization, multipart form data, and HTTP helpers.
+- `Ultimaker.ApiClient.Tests/`
+  - Unit tests for the client wrapper, response wrapper, exceptions, enum helpers, and each service.
+- `.github/workflows/nuget.yml`
+  - Packs and pushes the NuGet package from `Ultimaker.ApiClient.Core`.
+
+## Main public entry point
+Use `Ultimaker.ApiClient.Core.UltimakerClient`.
+
+Constructors:
+- `UltimakerClient(HttpClient httpClient)`
+  - Requires `httpClient.BaseAddress` to be set.
+- `UltimakerClient(string url)`
+  - Creates an internal `HttpClient` with a default timeout of 10 seconds.
+- `UltimakerClient(string url, string username, string password)`
+  - Creates an internal `HttpClientHandler` with `NetworkCredential`.
+
+Available service properties:
+- `Auth`
+- `Material`
+- `Printer`
+- `PrintJob`
+- `System`
+- `History`
+- `AirManager`
+
+Credential refresh:
+- `UpdateCred(string username, string password)` rebuilds the internal `HttpClient` and recreates all service instances.
+
+## Response model
+Most service methods return `UltimakerApiResponse<T>` with:
+- `Data`
+- `Success`
+- `Message`
+- `StatusCode`
+- `RawResponse`
+
+Important behavior:
+- `ServiceBase.GetAsync<T>` special-cases `404 Not Found` and returns a response with `Data == default` instead of throwing.
+- Other non-success statuses generally call `EnsureSuccessStatusCode()` unless a service method intentionally returns raw status codes.
+
+## Serialization conventions
+- `ServiceBase` uses `JsonSerializerSettings` with:
+  - `DateTimeZoneHandling = Utc`
+  - `StringEnumConverter`
+- The library expects API date/time values to be interpreted as UTC.
+- Enum values are serialized/deserialized as strings.
+
+## Auth expectations
+Methods that call `EnsureHasCredential()` require credentials to be present and throw `MissingCredentialException` otherwise.
+Examples:
+- `PrintJob.Start(...)`
+- `PrintJob.Pause()`
+- `PrintJob.Resume()`
+- `PrintJob.Stop()`
+- `PrintJob.GetGCode()`
+- `PrintJob.GetContainer()`
+- `System.SetName(...)`
+
+## Service overview
+### `AuthService`
+- `Request(RequestAuthDto)`
+- `Check(string id)`
+- `Verify()`
+
+### `MaterialService`
+- `GetAll()`
+- `Upload(FileItem)`
+- `GetById(Guid id)`
+- `DeleteById(Guid id)`
+
+### `PrinterService`
+Read-only printer, LED, bed, head, extruder, feeder, hotend, and active material endpoints.
+Representative methods:
+- `Get()`
+- `GetStatus()`
+- `GetLed()` / `GetLedHue()` / `GetLedSaturation()` / `GetLedBrightness()`
+- `GetHeads()` / `GetHead(...)`
+- `GetBed()` / `GetBedTemperature()` / `GetBedPreHeat()` / `GetBedType()`
+- `GetExtruder(...)` / `GetExtruders(...)`
+- `GetActiveMaterial(...)` / `GetActiveMaterialGuid(...)`
+- `GetFeeder(...)`, `GetFeederJerk(...)`, `GetFeederMaxSpeed(...)`, `GetFeederAcceleration(...)`
+- `GetHotend(...)`, `GetHotendOffset(...)`, `GetHotendTemperature(...)`
+
+### `PrintJobService`
+- `Get()`
+- `Start(FileItem)`
+- `Pause()`
+- `Resume()`
+- `Stop()`
+- `GetName()`
+- `GetStartedDt()` / `GetFinishedDt()` / `GetCleanedDt()`
+- `GetJobId()`
+- `GetProgress()`
+- `GetJobState()`
+- `GetJobResult()`
+- `GetTimeElapsed()` / `GetTimeTotal()`
+- `GetSource()` / `GetSourceUser()` / `GetSourceApp()`
+- `GetPauseSrc()`
+- `GetReprintOriginalUuid()`
+- `GetGCode()`
+- `GetContainer()`
+
+Notes:
+- There is no public `SetJobState(...)` method anymore. State changes are exposed through `Pause()`, `Resume()`, and `Stop()`.
+- `GetGCode()` uses a longer timeout (minimum 1 minute).
+
+### `SystemService`
+- `Get()`
+- `GetPlatform()`
+- `GetHostname()`
+- `GetFirmware()`
+- `GetFirmwareStatus()`
+- `GetFirmwareStable()`
+- `GetFirmwareLatest()`
+- `GetMemory()`
+- `GetTime()`
+- `GetLogs(...)`
+- `GetName()` / `SetName(string)`
+- `GetCountry()` / `GetIsCountryLocked()` / `GetLanguage()`
+- `GetUptime()`
+- `GetType()` / `GetVariant()`
+- `GetHardware()` / `GetHardwareTypeId()` / `GetHardwareRevision()`
+- `GetId()`
+
+### `HistoryService`
+- `GetPrintJobs(...)`
+- `GetPrintJobById(Guid jobId)`
+- `GetEvents(...)`
+
+### `AirManagerService`
+- `Get()`
+
+## Key DTOs and helpers
+- `FileItem`: wraps uploaded/downloaded file bytes and name.
+- `RequestAuthDto`: request payload for auth request.
+- Important response DTOs:
+  - `AuthDto`
+  - `CheckAuthDto`
+  - `PrinterDto`
+  - `PrintJobDto`
+  - `PrintJobAcceptedDto`
+  - `SystemDto`
+  - `HistoryPrintJobDto`
+  - `HistoryEventDto`
+  - `AirManagerDto`
+  - `ResultDto`
+
+## Endpoint source of truth
+If modifying routes, update `Ultimaker.ApiClient.Core/Constants/UltimakerPaths.cs`.
+
+## Testing guidance
+- Tests use mocked HTTP responses rather than live printers.
+- Service tests generally:
+  1. create a `MockHttpMessageHandler`
+  2. create an `HttpClient` with `BaseAddress`
+  3. instantiate the service
+  4. stub `When(...)` responses
+  5. assert deserialized DTOs/status codes
+- If a public API changes, update both:
+  - the service tests in `Ultimaker.ApiClient.Tests/Services/`
+  - the usage guidance in `README.md`
+
+## Build, test, and pack
+From the repository root:
+- `dotnet restore`
+- `dotnet build Ultimaker.ApiClient.sln`
+- `dotnet test Ultimaker.ApiClient.sln`
+- `dotnet pack Ultimaker.ApiClient.Core/Ultimaker.ApiClient.Core.csproj -c Release`
+
+## Versioning
+- Package version is defined in `Ultimaker.ApiClient.Core/Ultimaker.ApiClient.Core.csproj`.
+- Keep the version in `README.md` installation snippets in sync with the project version.
+- Current package version after this update: `1.0.4`.
+

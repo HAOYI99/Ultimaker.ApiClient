@@ -145,6 +145,101 @@ public class PrinterServiceTest
         }
         """;
 
+    private const string FullHeadResponse =
+        """
+        [
+          {
+            "acceleration": 1875,
+            "extruders": [
+              {
+                "active_material": {
+                  "GUID": "8b75b775-d3f2-4d0f-8fb2-2a3dd53cf673",
+                  "guid": "8b75b775-d3f2-4d0f-8fb2-2a3dd53cf673",
+                  "length_remaining": -1
+                },
+                "feeder": {
+                  "acceleration": 3000,
+                  "jerk": 5,
+                  "max_speed": 45
+                },
+                "hotend": {
+                  "id": "AA+ 0.4",
+                  "offset": {
+                    "state": "valid",
+                    "x": 22,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "revision": "1",
+                  "serial": "cf6d7e490000",
+                  "statistics": {
+                    "last_material_guid": "8b75b775-d3f2-4d0f-8fb2-2a3dd53cf673",
+                    "material_extruded": 3607120,
+                    "max_temperature_exposed": 261,
+                    "prints_since_cleaned": "160",
+                    "time_spent_hot": 4268160
+                  },
+                  "temperature": {
+                    "current": 250.1,
+                    "target": 250
+                  }
+                }
+              },
+              {
+                "active_material": {
+                  "GUID": "",
+                  "guid": "",
+                  "length_remaining": -1
+                },
+                "feeder": {
+                  "acceleration": 3000,
+                  "jerk": 5,
+                  "max_speed": 45
+                },
+                "hotend": {
+                  "id": "CC+ 0.4",
+                  "offset": {
+                    "state": "valid",
+                    "x": 22.25609756097561,
+                    "y": -0.10975609756097571,
+                    "z": 0
+                  },
+                  "revision": "1",
+                  "serial": "d214db4a0000",
+                  "statistics": {
+                    "last_material_guid": "0e01be8c-e425-4fb1-b4a3-b79f255f1db9",
+                    "material_extruded": 3400,
+                    "max_temperature_exposed": 220,
+                    "prints_since_cleaned": "10",
+                    "time_spent_hot": 515700
+                  },
+                  "temperature": {
+                    "current": 53.8,
+                    "target": 0
+                  }
+                }
+              }
+            ],
+            "fan": 17.019607843137255,
+            "jerk": {
+              "x": 20,
+              "y": 20,
+              "z": 0.4
+            },
+            "max_speed": {
+              "x": 300,
+              "y": 300,
+              "z": 40
+            },
+            "position": {
+              "x": 102.109,
+              "y": 112.677,
+              "z": 15.678
+            }
+          }
+        ]
+        """;
+
     public PrinterServiceTest()
     {
         _mockHttp = new MockHttpMessageHandler();
@@ -219,7 +314,15 @@ public class PrinterServiceTest
     [Fact]
     public async Task GetLed()
     {
-        var json = """{"brightness": 100, "hue": 0, "saturation": 0}""";
+        const string json =
+            """
+            {
+              "blink": {},
+              "brightness": 100,
+              "hue": 0,
+              "saturation": 0
+            }
+            """;
         _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.Led}")
             .Respond("application/json", json);
         var result = await _service.GetLed();
@@ -257,14 +360,79 @@ public class PrinterServiceTest
     [Fact]
     public async Task GetHeads()
     {
-        // returns array of heads
-        var json = """[{"acceleration": 2000, "extruders": []}]""";
         _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.Heads}")
-            .Respond("application/json", json);
+            .Respond("application/json", FullHeadResponse);
         var result = await _service.GetHeads();
         Assert.NotNull(result.Data);
         Assert.Single(result.Data);
-        Assert.Equal(2000, result.Data[0].Acceleration);
+        var head = result.Data[0];
+        Assert.Equal(1875, head.Acceleration);
+        Assert.Equal(2, head.Extruders.Length);
+        Assert.Equal(17.019607843137255m, head.Fan);
+        Assert.NotNull(head.Position);
+        Assert.Equal(102.109m, head.Position.X);
+        Assert.Equal(112.677m, head.Position.Y);
+        Assert.Equal(15.678m, head.Position.Z);
+        Assert.NotNull(head.MaxSpeed);
+        Assert.Equal(300m, head.MaxSpeed.X);
+        Assert.Equal(300m, head.MaxSpeed.Y);
+        Assert.Equal(40m, head.MaxSpeed.Z);
+        Assert.NotNull(head.Jerk);
+        Assert.Equal(20m, head.Jerk.X);
+        Assert.Equal(20m, head.Jerk.Y);
+        Assert.Equal(0.4m, head.Jerk.Z);
+
+        // Extruder 1
+        var extruder1 = head.Extruders[0];
+        Assert.NotNull(extruder1.ActiveMaterial);
+        Assert.Equal("8b75b775-d3f2-4d0f-8fb2-2a3dd53cf673", extruder1.ActiveMaterial.Id.ToString());
+        Assert.NotNull(extruder1.Feeder);
+        Assert.Equal(3000m, extruder1.Feeder.Acceleration);
+        Assert.Equal(45m, extruder1.Feeder.MaxSpeed);
+        Assert.Equal(5m, extruder1.Feeder.Jerk);
+        Assert.NotNull(extruder1.Hotend);
+        Assert.Equal("AA+ 0.4", extruder1.Hotend.Id);
+        Assert.Equal("cf6d7e490000", extruder1.Hotend.Serial);
+        Assert.Equal("1", extruder1.Hotend.Revision);
+        Assert.NotNull(extruder1.Hotend.Temperature);
+        Assert.Equal(250.1m, extruder1.Hotend.Temperature.Current);
+        Assert.Equal(250m, extruder1.Hotend.Temperature.Target);
+        Assert.NotNull(extruder1.Hotend.Offset);
+        Assert.Equal(22m, extruder1.Hotend.Offset.X);
+        Assert.Equal(0m, extruder1.Hotend.Offset.Y);
+        Assert.Equal(0m, extruder1.Hotend.Offset.Z);
+        Assert.NotNull(extruder1.Hotend.Statistics);
+        Assert.Equal("8b75b775-d3f2-4d0f-8fb2-2a3dd53cf673", extruder1.Hotend.Statistics.LastMaterialGuid.ToString());
+        Assert.Equal(3607120, extruder1.Hotend.Statistics.MaterialExtruded);
+        Assert.Equal(261, extruder1.Hotend.Statistics.MaxTemperatureExposed);
+        Assert.Equal(160, extruder1.Hotend.Statistics.PrintsSinceCleaned);
+        Assert.Equal(4268160, extruder1.Hotend.Statistics.TimeSpentHot);
+
+        // Extruder 2
+        var extruder2 = head.Extruders[1];
+        Assert.NotNull(extruder2.ActiveMaterial);
+        Assert.Equal(Guid.Empty, extruder2.ActiveMaterial.Id.GetValueOrDefault());
+        Assert.NotNull(extruder2.Feeder);
+        Assert.Equal(3000m, extruder2.Feeder.Acceleration);
+        Assert.Equal(45m, extruder2.Feeder.MaxSpeed);
+        Assert.Equal(5m, extruder2.Feeder.Jerk);
+        Assert.NotNull(extruder2.Hotend);
+        Assert.Equal("CC+ 0.4", extruder2.Hotend.Id);
+        Assert.Equal("d214db4a0000", extruder2.Hotend.Serial);
+        Assert.Equal("1", extruder2.Hotend.Revision);
+        Assert.NotNull(extruder2.Hotend.Temperature);
+        Assert.Equal(53.8m, extruder2.Hotend.Temperature.Current);
+        Assert.Equal(0m, extruder2.Hotend.Temperature.Target);
+        Assert.NotNull(extruder2.Hotend.Offset);
+        Assert.Equal(22.25609756097561m, extruder2.Hotend.Offset.X);
+        Assert.Equal(-0.10975609756097571m, extruder2.Hotend.Offset.Y);
+        Assert.Equal(0m, extruder2.Hotend.Offset.Z);
+        Assert.NotNull(extruder2.Hotend.Statistics);
+        Assert.Equal("0e01be8c-e425-4fb1-b4a3-b79f255f1db9", extruder2.Hotend.Statistics.LastMaterialGuid.ToString());
+        Assert.Equal(3400, extruder2.Hotend.Statistics.MaterialExtruded);
+        Assert.Equal(220, extruder2.Hotend.Statistics.MaxTemperatureExposed);
+        Assert.Equal(10, extruder2.Hotend.Statistics.PrintsSinceCleaned);
+        Assert.Equal(515700, extruder2.Hotend.Statistics.TimeSpentHot);
     }
 
     [Fact]

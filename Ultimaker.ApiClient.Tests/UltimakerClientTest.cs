@@ -1,4 +1,3 @@
-using System.Net;
 using JetBrains.Annotations;
 using Ultimaker.ApiClient.Core;
 
@@ -12,7 +11,9 @@ public class UltimakerClientTest
     [Fact]
     public void Constructor_WithHttpClient_InitializedProperties()
     {
-        using var httpClient = new HttpClient { BaseAddress = new Uri(BaseUrl) };
+        var baseUri = new Uri(BaseUrl);
+        using var httpClient = new HttpClient();
+        httpClient.BaseAddress = baseUri;
         using var client = new UltimakerClient(httpClient);
 
         Assert.NotNull(client.Auth);
@@ -56,25 +57,29 @@ public class UltimakerClientTest
     public void UpdateCred_UpdatesServicesWithNewCredentials()
     {
         using var client = new UltimakerClient(BaseUrl);
-
-        // Initially no creds
+        var previousAuth = client.Auth;
+        var previousPrinter = client.Printer;
 
         client.UpdateCred("newuser", "newpass");
 
         Assert.NotNull(client.Auth);
         Assert.NotNull(client.Printer);
-        // We can't easily check internal state of services, but we verify no exception is thrown
-        // and services are re-instantiated.
+        Assert.NotSame(previousAuth, client.Auth);
+        Assert.NotSame(previousPrinter, client.Printer);
     }
 
     [Fact]
     public void UpdateCred_CalledOnClientWithHttpClient_Works()
     {
-        using var httpClient = new HttpClient { BaseAddress = new Uri(BaseUrl) };
+        var baseUri = new Uri(BaseUrl);
+        using var httpClient = new HttpClient();
+        httpClient.BaseAddress = baseUri;
         using var client = new UltimakerClient(httpClient);
+        var previousAuth = client.Auth;
 
         client.UpdateCred("user", "pass");
 
         Assert.NotNull(client.Auth);
+        Assert.NotSame(previousAuth, client.Auth);
     }
 }

@@ -35,6 +35,30 @@ public class PrintJobService : ServiceBase
     public Task<UltimakerApiResponse<PrintJobAcceptedDto?>> Start(FileItem printFile, CancellationToken ct = default)
         => StartPrintJobAsync(UltimakerPaths.PrintJob.Base, printFile, ct);
 
+    /// <summary>
+    /// pause the print job
+    /// but note that not all state transitions are valid, it will always return true
+    /// make sure to check the job state before and after calling this method
+    /// </summary>
+    public Task<UltimakerApiResponse<HttpStatusCode>> Pause(CancellationToken ct = default)
+        => PutJobStateAsync(UltimakerPaths.PrintJob.State, UpdateJobStateOpt.PAUSE, ct);
+
+    /// <summary>
+    /// stop the print job
+    /// but note that not all state transitions are valid, it will always return true
+    /// make sure to check the job state before and after calling this method
+    /// </summary>
+    public Task<UltimakerApiResponse<HttpStatusCode>> Stop(CancellationToken ct = default)
+        => PutJobStateAsync(UltimakerPaths.PrintJob.State, UpdateJobStateOpt.ABORT, ct);
+    
+    /// <summary>
+    /// resume the print job
+    /// but note that not all state transitions are valid, it will always return true
+    /// make sure to check the job state before and after calling this method
+    /// </summary>
+    public Task<UltimakerApiResponse<HttpStatusCode>> Resume(CancellationToken ct = default)
+        => PutJobStateAsync(UltimakerPaths.PrintJob.State, UpdateJobStateOpt.PRINT, ct);
+
     public Task<UltimakerApiResponse<string?>> GetName(CancellationToken ct = default)
         => GetAsync<string>(UltimakerPaths.PrintJob.JobName, ct);
 
@@ -55,15 +79,6 @@ public class PrintJobService : ServiceBase
 
     public Task<UltimakerApiResponse<JobState?>> GetJobState(CancellationToken ct = default)
         => GetAsync<JobState?>(UltimakerPaths.PrintJob.State, ct);
-
-    /// <summary>
-    /// set a new job state
-    /// but note that not all state transitions are valid, it will always return true
-    /// make sure to check the job state before and after calling this method
-    /// </summary>
-    public Task<UltimakerApiResponse<HttpStatusCode>> SetJobState(UpdateJobStateOpt newState,
-        CancellationToken ct = default)
-        => PutJobStateAsync(UltimakerPaths.PrintJob.State, newState, ct);
 
     public Task<UltimakerApiResponse<JobResult?>> GetJobResult(CancellationToken ct = default)
         => GetAsync<JobResult?>(UltimakerPaths.PrintJob.Result, ct);
