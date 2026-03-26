@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Mime;
 using JetBrains.Annotations;
 using RichardSzalay.MockHttp;
@@ -145,6 +145,101 @@ public class PrinterServiceTest
         }
         """;
 
+    private const string FullHeadResponse =
+        """
+        [
+          {
+            "acceleration": 1875,
+            "extruders": [
+              {
+                "active_material": {
+                  "GUID": "8b75b775-d3f2-4d0f-8fb2-2a3dd53cf673",
+                  "guid": "8b75b775-d3f2-4d0f-8fb2-2a3dd53cf673",
+                  "length_remaining": -1
+                },
+                "feeder": {
+                  "acceleration": 3000,
+                  "jerk": 5,
+                  "max_speed": 45
+                },
+                "hotend": {
+                  "id": "AA+ 0.4",
+                  "offset": {
+                    "state": "valid",
+                    "x": 22,
+                    "y": 0,
+                    "z": 0
+                  },
+                  "revision": "1",
+                  "serial": "cf6d7e490000",
+                  "statistics": {
+                    "last_material_guid": "8b75b775-d3f2-4d0f-8fb2-2a3dd53cf673",
+                    "material_extruded": 3607120,
+                    "max_temperature_exposed": 261,
+                    "prints_since_cleaned": "160",
+                    "time_spent_hot": 4268160
+                  },
+                  "temperature": {
+                    "current": 250.1,
+                    "target": 250
+                  }
+                }
+              },
+              {
+                "active_material": {
+                  "GUID": "",
+                  "guid": "",
+                  "length_remaining": -1
+                },
+                "feeder": {
+                  "acceleration": 3000,
+                  "jerk": 5,
+                  "max_speed": 45
+                },
+                "hotend": {
+                  "id": "CC+ 0.4",
+                  "offset": {
+                    "state": "valid",
+                    "x": 22.25609756097561,
+                    "y": -0.10975609756097571,
+                    "z": 0
+                  },
+                  "revision": "1",
+                  "serial": "d214db4a0000",
+                  "statistics": {
+                    "last_material_guid": "0e01be8c-e425-4fb1-b4a3-b79f255f1db9",
+                    "material_extruded": 3400,
+                    "max_temperature_exposed": 220,
+                    "prints_since_cleaned": "10",
+                    "time_spent_hot": 515700
+                  },
+                  "temperature": {
+                    "current": 53.8,
+                    "target": 0
+                  }
+                }
+              }
+            ],
+            "fan": 17.019607843137255,
+            "jerk": {
+              "x": 20,
+              "y": 20,
+              "z": 0.4
+            },
+            "max_speed": {
+              "x": 300,
+              "y": 300,
+              "z": 40
+            },
+            "position": {
+              "x": 102.109,
+              "y": 112.677,
+              "z": 15.678
+            }
+          }
+        ]
+        """;
+
     public PrinterServiceTest()
     {
         _mockHttp = new MockHttpMessageHandler();
@@ -205,6 +300,349 @@ public class PrinterServiceTest
         Assert.Equal(100, led.Brightness);
         Assert.Equal(0, led.Hue);
         Assert.Equal(0, led.Saturation);
+    }
+
+    [Fact]
+    public async Task GetStatus()
+    {
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.Status}")
+            .Respond("application/json", "\"printing\"");
+        var result = await _service.GetStatus();
+        Assert.Equal(PrinterStatus.PRINTING, result.Data);
+    }
+
+    [Fact]
+    public async Task GetLed()
+    {
+        const string json =
+            """
+            {
+              "blink": {},
+              "brightness": 100,
+              "hue": 0,
+              "saturation": 0
+            }
+            """;
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.Led}")
+            .Respond("application/json", json);
+        var result = await _service.GetLed();
+        Assert.NotNull(result.Data);
+        Assert.Equal(100, result.Data.Brightness);
+    }
+
+    [Fact]
+    public async Task GetLedHue()
+    {
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.LedHue}")
+            .Respond("application/json", "123.45");
+        var result = await _service.GetLedHue();
+        Assert.Equal(123.45m, result.Data);
+    }
+
+    [Fact]
+    public async Task GetLedSaturation()
+    {
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.LedSaturation}")
+            .Respond("application/json", "50.0");
+        var result = await _service.GetLedSaturation();
+        Assert.Equal(50.0m, result.Data);
+    }
+
+    [Fact]
+    public async Task GetLedBrightness()
+    {
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.LedBrightness}")
+            .Respond("application/json", "75.0");
+        var result = await _service.GetLedBrightness();
+        Assert.Equal(75.0m, result.Data);
+    }
+
+    [Fact]
+    public async Task GetHeads()
+    {
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.Heads}")
+            .Respond("application/json", FullHeadResponse);
+        var result = await _service.GetHeads();
+        Assert.NotNull(result.Data);
+        Assert.Single(result.Data);
+        var head = result.Data[0];
+        Assert.Equal(1875, head.Acceleration);
+        Assert.Equal(2, head.Extruders.Length);
+        Assert.Equal(17.019607843137255m, head.Fan);
+        Assert.NotNull(head.Position);
+        Assert.Equal(102.109m, head.Position.X);
+        Assert.Equal(112.677m, head.Position.Y);
+        Assert.Equal(15.678m, head.Position.Z);
+        Assert.NotNull(head.MaxSpeed);
+        Assert.Equal(300m, head.MaxSpeed.X);
+        Assert.Equal(300m, head.MaxSpeed.Y);
+        Assert.Equal(40m, head.MaxSpeed.Z);
+        Assert.NotNull(head.Jerk);
+        Assert.Equal(20m, head.Jerk.X);
+        Assert.Equal(20m, head.Jerk.Y);
+        Assert.Equal(0.4m, head.Jerk.Z);
+
+        // Extruder 1
+        var extruder1 = head.Extruders[0];
+        Assert.NotNull(extruder1.ActiveMaterial);
+        Assert.Equal("8b75b775-d3f2-4d0f-8fb2-2a3dd53cf673", extruder1.ActiveMaterial.Id.ToString());
+        Assert.NotNull(extruder1.Feeder);
+        Assert.Equal(3000m, extruder1.Feeder.Acceleration);
+        Assert.Equal(45m, extruder1.Feeder.MaxSpeed);
+        Assert.Equal(5m, extruder1.Feeder.Jerk);
+        Assert.NotNull(extruder1.Hotend);
+        Assert.Equal("AA+ 0.4", extruder1.Hotend.Id);
+        Assert.Equal("cf6d7e490000", extruder1.Hotend.Serial);
+        Assert.Equal("1", extruder1.Hotend.Revision);
+        Assert.NotNull(extruder1.Hotend.Temperature);
+        Assert.Equal(250.1m, extruder1.Hotend.Temperature.Current);
+        Assert.Equal(250m, extruder1.Hotend.Temperature.Target);
+        Assert.NotNull(extruder1.Hotend.Offset);
+        Assert.Equal(22m, extruder1.Hotend.Offset.X);
+        Assert.Equal(0m, extruder1.Hotend.Offset.Y);
+        Assert.Equal(0m, extruder1.Hotend.Offset.Z);
+        Assert.NotNull(extruder1.Hotend.Statistics);
+        Assert.Equal("8b75b775-d3f2-4d0f-8fb2-2a3dd53cf673", extruder1.Hotend.Statistics.LastMaterialGuid.ToString());
+        Assert.Equal(3607120, extruder1.Hotend.Statistics.MaterialExtruded);
+        Assert.Equal(261, extruder1.Hotend.Statistics.MaxTemperatureExposed);
+        Assert.Equal(160, extruder1.Hotend.Statistics.PrintsSinceCleaned);
+        Assert.Equal(4268160, extruder1.Hotend.Statistics.TimeSpentHot);
+
+        // Extruder 2
+        var extruder2 = head.Extruders[1];
+        Assert.NotNull(extruder2.ActiveMaterial);
+        Assert.Equal(Guid.Empty, extruder2.ActiveMaterial.Id.GetValueOrDefault());
+        Assert.NotNull(extruder2.Feeder);
+        Assert.Equal(3000m, extruder2.Feeder.Acceleration);
+        Assert.Equal(45m, extruder2.Feeder.MaxSpeed);
+        Assert.Equal(5m, extruder2.Feeder.Jerk);
+        Assert.NotNull(extruder2.Hotend);
+        Assert.Equal("CC+ 0.4", extruder2.Hotend.Id);
+        Assert.Equal("d214db4a0000", extruder2.Hotend.Serial);
+        Assert.Equal("1", extruder2.Hotend.Revision);
+        Assert.NotNull(extruder2.Hotend.Temperature);
+        Assert.Equal(53.8m, extruder2.Hotend.Temperature.Current);
+        Assert.Equal(0m, extruder2.Hotend.Temperature.Target);
+        Assert.NotNull(extruder2.Hotend.Offset);
+        Assert.Equal(22.25609756097561m, extruder2.Hotend.Offset.X);
+        Assert.Equal(-0.10975609756097571m, extruder2.Hotend.Offset.Y);
+        Assert.Equal(0m, extruder2.Hotend.Offset.Z);
+        Assert.NotNull(extruder2.Hotend.Statistics);
+        Assert.Equal("0e01be8c-e425-4fb1-b4a3-b79f255f1db9", extruder2.Hotend.Statistics.LastMaterialGuid.ToString());
+        Assert.Equal(3400, extruder2.Hotend.Statistics.MaterialExtruded);
+        Assert.Equal(220, extruder2.Hotend.Statistics.MaxTemperatureExposed);
+        Assert.Equal(10, extruder2.Hotend.Statistics.PrintsSinceCleaned);
+        Assert.Equal(515700, extruder2.Hotend.Statistics.TimeSpentHot);
+    }
+
+    [Fact]
+    public async Task GetHead()
+    {
+        var json = """{"acceleration": 2000}""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.Head(0)}")
+            .Respond("application/json", json);
+        var result = await _service.GetHead(0);
+        Assert.NotNull(result.Data);
+        Assert.Equal(2000, result.Data.Acceleration);
+    }
+
+    [Fact]
+    public async Task GetHeadPosition()
+    {
+        var json = """{"x": 10, "y": 20, "z": 30}""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.HeadPosition(0)}")
+            .Respond("application/json", json);
+        var result = await _service.GetHeadPosition(0);
+        Assert.NotNull(result.Data);
+        Assert.Equal(10, result.Data.X);
+    }
+
+    [Fact]
+    public async Task GetHeadMaxSpeed()
+    {
+        var json = """{"x": 100, "y": 200, "z": 30}""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.HeadMaxSpeed(0)}")
+            .Respond("application/json", json);
+        var result = await _service.GetHeadMaxSpeed(0);
+        Assert.NotNull(result.Data);
+        Assert.Equal(100, result.Data.X);
+    }
+
+    [Fact]
+    public async Task GetHeadJerk()
+    {
+        var json = """{"x": 5, "y": 6, "z": 7}""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.HeadJerk(0)}")
+            .Respond("application/json", json);
+        var result = await _service.GetHeadJerk(0);
+        Assert.NotNull(result.Data);
+        Assert.Equal(5, result.Data.X);
+    }
+
+    [Fact]
+    public async Task GetHeadAcceleration()
+    {
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.HeadAcceleration(0)}")
+            .Respond("application/json", "3000");
+        var result = await _service.GetHeadAcceleration(0);
+        Assert.Equal(3000m, result.Data);
+    }
+
+    [Fact]
+    public async Task GetBed()
+    {
+        var json = """{"type": "glass", "temperature": {"current": 60, "target": 60}}""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.Bed}")
+            .Respond("application/json", json);
+        var result = await _service.GetBed();
+        Assert.NotNull(result.Data);
+        Assert.Equal("glass", result.Data.Type);
+    }
+
+    [Fact]
+    public async Task GetBedTemperature()
+    {
+        var json = """{"current": 60, "target": 60}""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.BedTemperature}")
+            .Respond("application/json", json);
+        var result = await _service.GetBedTemperature();
+        Assert.NotNull(result.Data);
+        Assert.Equal(60, result.Data.Current);
+    }
+
+    [Fact]
+    public async Task GetBedPreHeat()
+    {
+        var json = """{"active": true}""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.BedPreHeat}")
+            .Respond("application/json", json);
+        var result = await _service.GetBedPreHeat();
+        Assert.NotNull(result.Data);
+        Assert.True(result.Data.Active);
+    }
+
+    [Fact]
+    public async Task GetBedType()
+    {
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.BedType}")
+            .Respond("application/json", "\"glass\"");
+        var result = await _service.GetBedType();
+        Assert.Equal("glass", result.Data);
+    }
+
+    [Fact]
+    public async Task GetExtruders()
+    {
+        var json = """[{"feeder": {"max_speed": 50}}]""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.Extruders(0)}")
+            .Respond("application/json", json);
+        var result = await _service.GetExtruders(0);
+        Assert.NotNull(result.Data);
+        Assert.Single(result.Data);
+    }
+
+    [Fact]
+    public async Task GetExtruder()
+    {
+        var json = """{"feeder": {"max_speed": 50}}""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.Extruder(0, 0)}")
+            .Respond("application/json", json);
+        var result = await _service.GetExtruder(0, 0);
+        Assert.NotNull(result.Data);
+        Assert.Equal(50, result.Data.Feeder.MaxSpeed);
+    }
+
+    [Fact]
+    public async Task GetActiveMaterial()
+    {
+        var guid = Guid.NewGuid();
+        var json = $"{{\"guid\": \"{guid}\"}}";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.ActiveMaterial(0, 0)}")
+            .Respond("application/json", json);
+        var result = await _service.GetActiveMaterial(0, 0);
+        Assert.NotNull(result.Data);
+        Assert.Equal(guid, result.Data.Id);
+    }
+
+    [Fact]
+    public async Task GetActiveMaterialGuid()
+    {
+        var guid = Guid.NewGuid();
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.ActiveMaterialId(0, 0)}")
+            .Respond("application/json", $"\"{guid}\"");
+        var result = await _service.GetActiveMaterialGuid(0, 0);
+        Assert.Equal(guid, result.Data);
+    }
+
+    [Fact]
+    public async Task GetFeeder()
+    {
+        var json = """{"max_speed": 60}""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.Feeder(0, 0)}")
+            .Respond("application/json", json);
+        var result = await _service.GetFeeder(0, 0);
+        Assert.NotNull(result.Data);
+        Assert.Equal(60, result.Data.MaxSpeed);
+    }
+
+    [Fact]
+    public async Task GetFeederJerk()
+    {
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.FeederJerk(0, 0)}")
+            .Respond("application/json", "10");
+        var result = await _service.GetFeederJerk(0, 0);
+        Assert.Equal(10m, result.Data);
+    }
+
+    [Fact]
+    public async Task GetFeederMaxSpeed()
+    {
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.FeederMaxSpeed(0, 0)}")
+            .Respond("application/json", "60");
+        var result = await _service.GetFeederMaxSpeed(0, 0);
+        Assert.Equal(60m, result.Data);
+    }
+
+    [Fact]
+    public async Task GetFeederAcceleration()
+    {
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.FeederAcceleration(0, 0)}")
+            .Respond("application/json", "500");
+        var result = await _service.GetFeederAcceleration(0, 0);
+        Assert.Equal(500m, result.Data);
+    }
+
+    [Fact]
+    public async Task GetHotend()
+    {
+        var json = """{"id": "AA 0.4", "temperature": {"current": 200}}""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.Hotend(0, 0)}")
+            .Respond("application/json", json);
+        var result = await _service.GetHotend(0, 0);
+        Assert.NotNull(result.Data);
+        Assert.Equal("AA 0.4", result.Data.Id);
+    }
+
+    [Fact]
+    public async Task GetHotendOffset()
+    {
+        var json = """{"state": "valid", "x": 1, "y": 2, "z": 3}""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.HotendOffset(0, 0)}")
+            .Respond("application/json", json);
+        var result = await _service.GetHotendOffset(0, 0);
+        Assert.NotNull(result.Data);
+        Assert.Equal(Validity.VALID, result.Data.State);
+    }
+
+    [Fact]
+    public async Task GetHotendTemperature()
+    {
+        var json = """{"current": 210, "target": 210}""";
+        _mockHttp.When($"{BaseUrl}/{UltimakerPaths.Printer.HotendTemperature(0, 0)}")
+            .Respond("application/json", json);
+        var result = await _service.GetHotendTemperature(0, 0);
+        Assert.NotNull(result.Data);
+        Assert.Equal(210, result.Data.Current);
     }
 
     private static void AssertDimension(DimensionDto dimension)

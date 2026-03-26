@@ -7,5 +7,10 @@ public enum PrinterStatus
     IDLE,
     PRINTING,
     ERROR,
-    MAINTENANCE
+    MAINTENANCE,
+    /// <summary>
+    /// not original enum value, added to represent offline status
+    /// when api is timeout
+    /// </summary>
+    OFFLINE
 }

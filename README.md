@@ -21,12 +21,12 @@ Feel free to contribute ✍️ or report issues 🐛. Let's make it better toget
 
 ### NuGet
 ```bash
-dotnet add package Ultimaker.ApiClient --version 1.0.0
+dotnet add package Ultimaker.ApiClient --version 1.0.4
 ```
 
 ### PackageReference
 ```xml
-<PackageReference Include="Ultimaker.ApiClient" Version="1.0.0" />
+<PackageReference Include="Ultimaker.ApiClient" Version="1.0.4" />
 ```
 
 ---
