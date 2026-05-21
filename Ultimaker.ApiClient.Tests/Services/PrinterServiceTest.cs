@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Mime;
+using System.Net.Sockets;
 using JetBrains.Annotations;
 using RichardSzalay.MockHttp;
 using Ultimaker.ApiClient.Core.Constants;
@@ -310,7 +311,7 @@ public class PrinterServiceTest
         var result = await _service.GetStatus();
         Assert.Equal(PrinterStatus.PRINTING, result.Data);
     }
-
+    
     [Fact]
     public async Task GetLed()
     {
@@ -658,5 +659,21 @@ public class PrinterServiceTest
         Assert.NotNull(temperature);
         Assert.True(temperature.Current >= 0);
         Assert.True(temperature.Target >= 0);
+    }
+
+    private sealed class ThrowHostNotFoundHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            => throw new HttpRequestException(
+                "No such host is known. (hostname.com:80)",
+                new SocketException((int)SocketError.HostNotFound));
+    }
+
+    private sealed class ThrowConnectionRefusedHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            => throw new HttpRequestException(
+                "No connection could be made because the target machine actively refused it. (localhost:8080)",
+                new SocketException((int)SocketError.ConnectionRefused));
     }
 }
