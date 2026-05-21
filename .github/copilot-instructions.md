@@ -39,7 +39,7 @@ No dedicated lint cmd in repo.
 - `PrintJobService` uses min 1-minute timeout for long GCode fetch. Reuse same pattern for slow/large endpoints.
 - `UltimakerClient.UpdateCred(...)` rebuilds `HttpClient` + all services. Do not cache service refs across cred updates.
 - Tests use `RichardSzalay.MockHttp` + concrete `BaseAddress`. Assert DTO deserialize + status behavior, not status only.
-- Version source: `Ultimaker.ApiClient.Core/Ultimaker.ApiClient.Core.csproj`. Keep README install snippet in sync.
+- Version source: `Ultimaker.ApiClient.Core/Ultimaker.ApiClient.nuspec`. Keep README install snippet in sync.
 
 ## LLM text style
 
