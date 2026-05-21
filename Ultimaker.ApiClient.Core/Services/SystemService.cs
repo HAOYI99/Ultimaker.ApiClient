@@ -86,7 +86,11 @@ public class SystemService : ServiceBase
     {
         EnsureHasCredential();
         var requestContent = new StringJsonContent(newName);
-        var response = await _httpClient.PutAsync(path, requestContent, ct);
-        return new UltimakerApiResponse<HttpStatusCode>(response, response.StatusCode);
+        return await SendAsyncInternal(
+            sendAction: () => _httpClient.PutAsync(path, requestContent, ct),
+            ct: ct,
+            ensureSuccessStatusCode: false,
+            responseReader: (response, _) => Task.FromResult(response.StatusCode)
+        );
     }
 }

@@ -50,7 +50,7 @@ public class PrintJobService : ServiceBase
     /// </summary>
     public Task<UltimakerApiResponse<HttpStatusCode>> Stop(CancellationToken ct = default)
         => PutJobStateAsync(UltimakerPaths.PrintJob.State, UpdateJobStateOpt.ABORT, ct);
-    
+
     /// <summary>
     /// resume the print job
     /// but note that not all state transitions are valid, it will always return true
@@ -119,8 +119,12 @@ public class PrintJobService : ServiceBase
         EnsureHasCredential();
         var requestBody = new UpdateJobStateDto { NewState = newState };
         var requestContent = new StringJsonContent(requestBody, _jsonSetting);
-        var response = await _httpClient.PutAsync(path, requestContent, ct);
-        return new UltimakerApiResponse<HttpStatusCode>(response, response.StatusCode);
+        return await SendAsyncInternal(
+            sendAction: () => _httpClient.PutAsync(path, requestContent, ct),
+            ct: ct,
+            ensureSuccessStatusCode: false,
+            responseReader: (response, _) => Task.FromResult(response.StatusCode)
+        );
     }
 
     private async Task<UltimakerApiResponse<PrintJobAcceptedDto?>> StartPrintJobAsync(string path, FileItem printFile,
@@ -137,24 +141,27 @@ public class PrintJobService : ServiceBase
     private async Task<UltimakerApiResponse<string?>> GetGCodeAsync(string path, CancellationToken ct = default)
     {
         EnsureHasCredential();
-        var response = await _longTimeoutHttpClient.GetAsync(path, ct);
-        if (response.IsNotFound())
-            return new UltimakerApiResponse<string?>(response);
-        response.EnsureSuccessStatusCode();
-        var gcode = await response.Content.ReadAsStringAsync(ct);
-        return new UltimakerApiResponse<string?>(response, data: gcode);
+        return await SendAsyncInternal<string?>(
+            sendAction: () => _longTimeoutHttpClient.GetAsync(path, ct),
+            ct: ct,
+            checkNotFound: true,
+            responseReader: async (response, token) => await response.Content.ReadAsStringAsync(token)
+        );
     }
 
     private async Task<UltimakerApiResponse<FileItem?>> GetFileAsync(string path, CancellationToken ct = default)
     {
         EnsureHasCredential();
-        var response = await _httpClient.GetAsync(path, ct);
-        if (response.IsNotFound())
-            return new UltimakerApiResponse<FileItem?>(response);
-        response.EnsureSuccessStatusCode();
-        var contents = await response.Content.ReadAsByteArrayAsync(ct);
-        var filename = response.Content.Headers.ContentDisposition?.FileName?.Trim('"') ?? "undefined_filename";
-        var file = new FileItem(contents, filename);
-        return new UltimakerApiResponse<FileItem?>(response, file);
+        return await SendAsyncInternal<FileItem?>(
+            sendAction: () => _httpClient.GetAsync(path, ct),
+            ct: ct,
+            checkNotFound: true,
+            responseReader: async (response, token) =>
+            {
+                var contents = await response.Content.ReadAsByteArrayAsync(token);
+                var filename = response.Content.Headers.ContentDisposition?.FileName?.Trim('"') ?? "undefined_filename";
+                return new FileItem(contents, filename);
+            }
+        );
     }
 }

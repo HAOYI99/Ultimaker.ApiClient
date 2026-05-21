@@ -35,7 +35,11 @@ public class AuthService : ServiceBase
 
     private async Task<UltimakerApiResponse<HttpStatusCode>> VerifyAsync(string path, CancellationToken ct = default)
     {
-        var response = await _httpClient.GetAsync(path, ct);
-        return new UltimakerApiResponse<HttpStatusCode>(response, response.StatusCode);
+        return await SendAsyncInternal(
+            sendAction: () => _httpClient.GetAsync(path, ct),
+            ct: ct,
+            ensureSuccessStatusCode: false,
+            responseReader: (response, _) => Task.FromResult(response.StatusCode)
+        );
     }
 }

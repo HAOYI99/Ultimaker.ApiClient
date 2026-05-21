@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Ultimaker.ApiClient</id>
+    <version>1.0.5</version>
+    <title>Ultimaker API Client</title>
+    <authors>HAOYI99</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/HAOYI99/Ultimaker.ApiClient</projectUrl>
+    <repository type="git" url="https://github.com/HAOYI99/Ultimaker.ApiClient" />
+    <description>Unofficial library for Ultimaker APIs</description>
+    <tags>ultimaker</tags>
+    <dependencies>
+      <group targetFramework="net8.0">
+        <dependency id="Newtonsoft.Json" version="13.0.4" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin\Release\net8.0\Ultimaker.ApiClient.Core.dll" target="lib\net8.0" />
+    <file src="..\README.md" target="" />
+  </files>
+</package>
+
